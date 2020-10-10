@@ -1,14 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <curl/curl.h>
 #include <regex.h>
 
 #define HOME getenv("HOME")
 
 int mkdir(const char *pathname, mode_t mode);
-
-char storedData[15000];
-int writeDataI = 0;
 
 static inline int existTest(const char *name) {
 	FILE *file;
@@ -18,17 +14,6 @@ static inline int existTest(const char *name) {
 	}
 	// if file is NULL it won't open, no memory leak
 	return 0;
-}
-
-static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
-    // buf is a pointer to the data that curl has for us
-    // size*nmemb is the size of the buffer
-    for (int c = 0; c < size*nmemb; c++) {	
-    	storedData[writeDataI] = buf[c];
-   		writeDataI++;
-    }
-    // tell curl how many bytes we handled
-    return size*nmemb;
 }
 
 #include "download.h"

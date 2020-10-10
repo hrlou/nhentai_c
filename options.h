@@ -1,3 +1,6 @@
+#ifndef OPTIONS_H
+#define OPTIONS_H
+
 /*	naming scheme
 	ex. doujinid_NAMING
 	NULL = just id
@@ -6,3 +9,5 @@
 /*	Self Explanitory
 	NULL = Search all languages*/
 #define LANGUAGE "JAPANESE"
+
+#endif // OPTIONS_H
