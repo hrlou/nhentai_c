@@ -5,7 +5,7 @@ there will be **no config file** for this version, options will be done through 
 ## Progress
 ### Redone from C++
 - [x] Initial ID -> Gallery ID
-- [x] Download Doujin
-- [ ] Read/Write Database
 - [ ] Download Doujins Tags
 - [ ] Name File Opon Tags
+- [x] Download Doujin
+- [ ] Read/Write Database
