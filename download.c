@@ -1,6 +1,7 @@
-#include <stdio.h>
 #include <curl/curl.h>
+#include <stdio.h>
 
+#include "main.h"
 #include "download.h"
 
 // this is the index of the storedData array to write from
@@ -20,15 +21,35 @@ static inline int existTest(const char *name) {
 static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
     // buf is a pointer to the data that curl has for us
     // size*nmemb is the size of the buffer
-    for (int c = 0; c < size*nmemb; c++) {  
-        storedData[writeDataI] = buf[c];
-        writeDataI++;
+    static int writing = 1;
+    static int newline = 0;
+    if (writeDataI == 0) {
+        newline = 0;
+    }
+    for (int c = 0; c < size*nmemb; c++) {
+        // this is horrible, but it saves RAM and makes parsing easier
+        if (buf[c] == '\n') {
+            newline++;
+        }
+        if (buf[c] == '<' || buf[c] == '\\') {
+            writing = 0;
+        }
+        if (buf[c] == '>') {
+            writing = 1;
+        }
+        if (newline < 5) {
+            writing = 1;
+        }
+        if (writing == 1) {
+            storedData[writeDataI] = buf[c];
+            writeDataI++;
+        }
     }
     // tell curl how many bytes we handled
     return size*nmemb;
 }
 
-int getHtml(const char* downloadUrl) {
+int getHtml(char* downloadUrl) {
     // our curl objects
     CURL* getHtml;
     CURLcode getHtmlResult;
@@ -48,12 +69,17 @@ int getHtml(const char* downloadUrl) {
         curl_easy_cleanup(getHtml);
         return 0;
     }
+    // printf("%d\n", writeDataI);
     writeDataI = 0;
     curl_easy_cleanup(getHtml);
     return 1;
 }
 
-int doDownload(char* url, char* file) {
+int doDownload(char* id, int ind, char* dir, char* ext) {
+    char url[60];
+    sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", id, ind, ext);
+    char file[30];
+    sprintf(file, "%s/%03d.%s", dir, ind, ext);
     // our curl objects
     CURL* getImg;
     CURLcode getImgResult;
@@ -68,7 +94,7 @@ int doDownload(char* url, char* file) {
         img = fopen(file, "w");
         // error if we cannot
         if (img == NULL) {
-            printf("Unable To Create Image\n");
+            return 0;
         }
         // set url
         curl_easy_setopt(getImg, CURLOPT_URL, url);
@@ -80,11 +106,11 @@ int doDownload(char* url, char* file) {
         // perform operation
         getImgResult = curl_easy_perform(getImg);
 
-        // fail 
+        // page download fail
         if (getImgResult) {
-            curl_easy_cleanup(getImg);
             fclose(img);
-            printf("ERROR! on downloading pg.\n");
+            remove(file);
+            curl_easy_cleanup(getImg);
             return 0;
         }
         curl_easy_cleanup(getImg);
