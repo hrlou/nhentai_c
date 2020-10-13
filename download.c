@@ -55,31 +55,29 @@ int getHtml(char* downloadUrl) {
     CURLcode getHtmlResult;
     // initialise
     getHtml = curl_easy_init();
-    // set url
     curl_easy_setopt(getHtml, CURLOPT_URL, downloadUrl);
     // send the html data to the call back function
     curl_easy_setopt(getHtml, CURLOPT_WRITEFUNCTION, &writeCallBack);
-    // perform operation
     getHtmlResult = curl_easy_perform(getHtml);
-   
     // if we fail
     if (getHtmlResult) {
-        // reset the index
+        // need to reset the index
         writeDataI = 0;
         curl_easy_cleanup(getHtml);
         return 0;
     }
-    // printf("%d\n", writeDataI);
     writeDataI = 0;
     curl_easy_cleanup(getHtml);
     return 1;
 }
 
 int doDownload(char* id, int ind, char* dir, char* ext) {
+    // printf("%s\n%s\n%s\n", id, dir, ext);
     char url[60];
     sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", id, ind, ext);
     char file[30];
     sprintf(file, "%s/%03d.%s", dir, ind, ext);
+
     // our curl objects
     CURL* getImg;
     CURLcode getImgResult;
@@ -103,7 +101,6 @@ int doDownload(char* id, int ind, char* dir, char* ext) {
         curl_easy_setopt(getImg, CURLOPT_FAILONERROR, 1);
         // write data to the image file
         curl_easy_setopt(getImg, CURLOPT_WRITEDATA, img);
-        // perform operation
         getImgResult = curl_easy_perform(getImg);
 
         // page download fail
