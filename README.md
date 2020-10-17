@@ -1,6 +1,5 @@
 # nhentai-downloader
 a rewrite of the nhentai-downloader in full C  
-there will be **no config file** for this version, options will be done through a header file.
 
 ## installation
 ```
@@ -8,6 +7,10 @@ $ git clone https://github.com/hrlou/nhentai_c
 $ cd nhentai_c
 $ sudo make install
 ```
+
+## configuration
+Too edit the configuration, open "config.def.h"  
+Instructions are included in there
 
 ## Progress
 ### Redone from C++
