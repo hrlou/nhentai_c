@@ -1,11 +1,11 @@
 #include <curl/curl.h>
-#include <stdio.h>
 
 #include "main.h"
 #include "download.h"
 
 // this is the index of the storedData array to write from
 int writeDataI = 0;
+int tagsDataI = 0;
 
 static inline int existTest(const char *name) {
     FILE *file;
@@ -41,8 +41,13 @@ static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
             writing = 1;
         }
         if (writing == 1) {
-            storedData[writeDataI] = buf[c];
-            writeDataI++;
+            if (buf[c] == ' ') {
+                storedData[writeDataI] = '-';
+                writeDataI++;
+            } else if (buf[c] != '\t') {
+                storedData[writeDataI] = buf[c];
+                writeDataI++;
+            }    
         }
     }
     // tell curl how many bytes we handled
@@ -75,7 +80,7 @@ int doDownload(char* id, int ind, char* dir, char* ext) {
     // printf("%s\n%s\n%s\n", id, dir, ext);
     char url[60];
     sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", id, ind, ext);
-    char file[30];
+    char file[LIMIT];
     sprintf(file, "%s/%03d.%s", dir, ind, ext);
 
     // our curl objects
