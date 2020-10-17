@@ -7,7 +7,7 @@
 
 #include "main.h"
 #include "download.h"
-#include "options.h"
+#include "../config.def.h"
 
 void progressBar(float num, float den) {
     int index = 1;

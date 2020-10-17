@@ -4,11 +4,11 @@ PREFIX = "/usr/local"
 nhentai: main.o download.o
 	$(CC) main.o -lcurl download.o -o nhentai
 
-main.o: main.c options.h main.h
-	$(CC) -c main.c
+main.o: src/main.c src/main.h config.def.h
+	$(CC) -c src/main.c
 	
-download.o: download.c download.h main.h
-	$(CC) -c download.c
+download.o: src/download.c src/download.h
+	$(CC) -c src/download.c
 
 clean:
 	rm *.o nhentai
