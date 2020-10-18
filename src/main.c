@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <regex.h>
 
 #ifdef __FreeBSD__
 #include <sys/stat.h>
@@ -24,12 +23,14 @@ void progressBar(float num, float den) {
     fflush(stdout);
 }
 
-void getTags(char* id, char* name) {
+void getTags(char* id, char* name, char* gid, char* pages) {
 	char file[15];
 	sprintf(file, "%s.txt", id);
 
 	sprintf(name, "%s_", id);
 	bool namingScheme = false;
+	bool getId = true;
+	bool getPages = false;
 
 	FILE *fileWrite;
     fileWrite = fopen(file, "w");
@@ -49,6 +50,19 @@ void getTags(char* id, char* name) {
 			fprintf(fileWrite, "\n");
 		}
 		c++;
+		// GALLERY ID
+		// galleries/\\(.*\\)/cover.*\"-/><meta-property=\"og:type\"
+		if (storedData[c] == 'g' && storedData[c + 1] == 'a' && storedData[c + 8] == 's' && getId == true) {
+			c+=10;
+			fprintf(fileWrite, "Gallery-Id: ");
+			while (storedData[c] != '/') {
+				fprintf(fileWrite, "%c", storedData[c]);
+				sprintf(gid, "%s%c", gid, storedData[c]);
+				c++;
+			}
+			fprintf(fileWrite, "\n");
+			getId = false;
+		}
 		// TAGS
 		// start if charecter is a new line and next charecter is a capital and not U; avoiding the uploaded class
 		if (storedData[c] == '\n' && storedData[c + 1] >= 65 && storedData[c + 1] <= 90 && storedData[c + 1] != 'U') {
@@ -56,6 +70,9 @@ void getTags(char* id, char* name) {
 			// for naming scheme
 			if (storedData[c] == NAMING[0] && storedData[c + 1] == NAMING[1] && storedData[c + 2] == NAMING[2]) {
 				namingScheme = true;
+			}
+			if (storedData[c] == 'P' && storedData[c + 1] == 'a' && storedData[c + 2] == 'g') {
+				getPages = true;
 			}
 
 			// print the tag class, i.e Parodies:
@@ -74,11 +91,18 @@ void getTags(char* id, char* name) {
 				}
 				// there are only 2 > infront of the amount of tags; don't print that
 				while (storedData[c] != '>' && test >= 3) {
+					if (getPages == true) {
+						sprintf(pages, "%s%c", pages, storedData[c]);
+					}
 					if (namingScheme == true) {
 						sprintf(name, "%s%c", name, storedData[c]);
 					}
+
 					fprintf(fileWrite, "%c", storedData[c]);
 					if (storedData[c + 1] == '>') {
+						if (getPages == true) {
+							sprintf(pages, "%s\0", pages);
+						}
 						if (namingScheme == true) {
 							sprintf(name, "%s_", name);
 						}
@@ -92,6 +116,7 @@ void getTags(char* id, char* name) {
 			fprintf(fileWrite, "\n");
 		}
 		namingScheme = false;
+		getPages = false;
 	}
 	fclose(fileWrite);
 	int i = 0;
@@ -114,27 +139,20 @@ int main(int argc, char **argv) {
 		printf("NO ID SPECIFIED, EXITING\n");
 	}
 	for (int doujin = 1; doujin < argc; doujin++) {
-		regmatch_t pmatch[2];
-		regex_t preg;
 		printf("Downloading (%d/%d) %s : ", doujin, (argc - 1), argv[doujin]);
 		char currentUrl[35];
 		sprintf(currentUrl, "https://nhentai.net/g/%s/", argv[doujin]);
 		getHtml(currentUrl);
-		regcomp(&preg, "galleries/\\(.*\\)/cover.*\"-/><meta-property=\"og:type\".*Pages:.*>>>\\([0-9].*\\)>>>>>.*Uploaded", 0);
-		regexec(&preg, storedData, 3, pmatch, 0);
-		regfree(&preg);
-		
-		char galleryId[(pmatch[1].rm_eo - pmatch[1].rm_so)];
-		sprintf(galleryId, "%.*s", pmatch[1].rm_eo - pmatch[1].rm_so, &storedData[pmatch[1].rm_so]);
-
-		char pageNumber[(pmatch[2].rm_eo - pmatch[2].rm_so)];
-		sprintf(pageNumber, "%.*s", pmatch[2].rm_eo - pmatch[2].rm_so, &storedData[pmatch[2].rm_so]);
 
 		char directory[LIMIT];
-		getTags(argv[doujin], directory);
+		char galleryId[10];
+		char pageNumber[4];
+		pageNumber[0] = '\0';
+
+		getTags(argv[doujin], directory, galleryId, pageNumber);
 
 		static int exI = 0;
-		static char* extensions[] = { "jpg", "png", "gif" };
+		static char* extensions[] = {"jpg", "png", "gif"};
 		for (int i = 1; i <= atoi(pageNumber); i++) {
 			while (doDownload(galleryId, i, directory, extensions[exI]) == 0) {
 				exI++;
