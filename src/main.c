@@ -35,6 +35,9 @@ void getTags(char* id, char* name, char* gid, char* pages) {
 	FILE *fileWrite;
     fileWrite = fopen(file, "w");
 
+    sprintf(gid, "\0");
+    sprintf(pages, "\0");
+
     int c = 0;
 	while (storedData[c] != '\0') {
 		// TITLE
@@ -147,7 +150,7 @@ int main(int argc, char **argv) {
 		char directory[LIMIT];
 		char galleryId[10];
 		char pageNumber[4];
-		pageNumber[0] = '\0';
+		// pageNumber[0] = '\0';
 
 		getTags(argv[doujin], directory, galleryId, pageNumber);
 
