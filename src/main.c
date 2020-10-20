@@ -11,7 +11,7 @@
 void progressBar(float num, float den) {
     int index = 1;
     float perc = ((num / den) * 100);
-    printf("\r(%0.0f%) [", perc);
+    printf("\r(%0.0f%) [\033[0;32m", perc);
     for (float i = 0; i <= 50; i++) {
         if (i <= (perc / 2)) {
         	putchar('#');
@@ -19,11 +19,24 @@ void progressBar(float num, float den) {
         	putchar(' ');
         }
     }
-    printf("] (%0.0f/%0.0f)", num, den);
+    printf("\033[0m] (%0.0f/%0.0f)", num, den);
     fflush(stdout);
 }
 
 void getTags(char* id, char* name, char* gid, char* pages) {
+	/* 	0	Title: Shiki-nyan-wa-Producer-de-Lotion-Onanie-ga-Yamerarenai!
+		1	Gallery-Id: 1163557
+		2	Parodies: the-idolmaster, 
+		3	Characters: producer, shiki-ichinose, 
+		4	Tags: sole-female, sole-male, big-ass, footjob, 
+		5	Artists: saki-chisuzu, 
+		6	Groups: berry-16, 
+		7	Languages: japanese, 
+		8	Categories: doujinshi, 
+		9	Pages: 28,	*/
+
+
+
 	char file[15];
 	sprintf(file, "%s.txt", id);
 
@@ -39,6 +52,7 @@ void getTags(char* id, char* name, char* gid, char* pages) {
     sprintf(pages, "\0");
 
     int c = 0;
+
 	while (storedData[c] != '\0') {
 		// TITLE
 		if (storedData[c] == 'm' && storedData[c + 5] == 'i' && storedData[c + 15] == 'n' && storedData[c + 21] == 'c') {
@@ -153,6 +167,8 @@ int main(int argc, char **argv) {
 		// pageNumber[0] = '\0';
 
 		getTags(argv[doujin], directory, galleryId, pageNumber);
+
+		return 0;
 
 		static int exI = 0;
 		static char* extensions[] = {"jpg", "png", "gif"};
