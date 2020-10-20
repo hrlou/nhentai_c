@@ -168,8 +168,6 @@ int main(int argc, char **argv) {
 
 		getTags(argv[doujin], directory, galleryId, pageNumber);
 
-		return 0;
-
 		static int exI = 0;
 		static char* extensions[] = {"jpg", "png", "gif"};
 		for (int i = 1; i <= atoi(pageNumber); i++) {
