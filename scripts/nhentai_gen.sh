@@ -1,6 +1,5 @@
 #!/bin/bash
 DB_FILE="$PWD/$(date +%s)_library.sh"
-#DB_FILE="$PWD/test_library.sh"
 echo "#!/bin/sh" > $DB_FILE
 
 for main in */; do

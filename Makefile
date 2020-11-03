@@ -16,11 +16,13 @@ clean:
 install: nhentai
 	mkdir -p $(PREFIX)/bin
 	cp -f nhentai $(PREFIX)/bin
-	cp -f rename.sh $(PREFIX)/bin/nhentai_rename
-	cp -f gen_script.sh $(PREFIX)/bin/nhentai_gen
+	cp -f scripts/nhentai_rename.sh $(PREFIX)/bin/nhentai_rename
+	cp -f scripts/nhentai_gen.sh $(PREFIX)/bin/nhentai_gen
 	chmod 755 $(PREFIX)/bin/nhentai
 	chmod 755 $(PREFIX)/bin/nhentai_rename
 	chmod 755 $(PREFIX)/bin/nhentai_gen
 
 uninstall:
 	rm -f $(PREFIX)/bin/nhentai
+	rm -f $(PREFIX)/bin/nhentai_rename
+	rm -f $(PREFIX)/bin/nhentai_gen
