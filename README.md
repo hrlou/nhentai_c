@@ -13,10 +13,8 @@ Usage is extremely simple.
 ```
 nhentai id1 id2 id3....
 ```
-The program will download your specified Doujins to their own directories.
-It also generate a tags file named *DOUJIN-ID*.txt in said directory.   
-Ex. "00000/000000.txt"
-This contains all the tags and is formatted like so: 
+The program will download your specified Doujins to it's own directory
+It also generate a tags file named *DOUJIN-ID*.txt in said directory which contains all the tags and is formatted like so: 
 ```
 Title: title
 Gallery-Id: id
