@@ -1,10 +1,20 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-#define LIMIT 75
-
-const char NAMING[] = "Artists";
-// const char NAMING[] = "Tags";
+#define LIMIT 100
+/*	0	None
+	1	Title
+	2	Gallery-Id
+	3	Parodies
+	4	Characters
+	5	Tags
+	6	Artists
+	7	Groups
+	8	Languages
+	9	Categories
+	10	Pages */
+// set NAMING to the corresponding number above
+#define NAMING 5
 
 /*	[0;31m	Red
 	[0;32m	Green

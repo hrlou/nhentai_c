@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #ifdef __FreeBSD__
 #include <sys/stat.h>
@@ -8,187 +10,199 @@
 #include "download.h"
 #include "../config.def.h"
 
-#include <stdlib.h>
-#include <string.h>
-
-typedef enum {true, false} bool;
-
 void progressBar(float num, float den) {
     int index = 1;
     float perc = ((num / den) * 100);
-    printf("\r(%0.0f%) [%s", STATUS_COLOUR, perc);
+    printf("\r(%0.0f%%) [%s", perc, STATUS_COLOUR);
     for (float i = 0; i <= STATUS_SIZE; i++) {
         if (i <= (perc / (100 / STATUS_SIZE))) {
-        	putchar(STATUS_SYMBOL);
+            putchar(STATUS_SYMBOL);
         } else {
-        	putchar(' ');
+            putchar(' ');
         }
     }
     printf("\033[0m] (%0.0f/%0.0f)", num, den);
     fflush(stdout);
 }
 
-void getTags(char* id, char* directory, char* gid, char* pages) {
-	/* 	0	Title: Shiki-nyan-wa-Producer-de-Lotion-Onanie-ga-Yamerarenai!
-		1	Gallery-Id: 1163557
-		2	Parodies: the-idolmaster, 
-		3	Characters: producer, shiki-ichinose, 
-		4	Tags: sole-female, sole-male, big-ass, footjob, 
-		5	Artists: saki-chisuzu, 
-		6	Groups: berry-16, 
-		7	Languages: japanese, 
-		8	Categories: doujinshi, 
-		9	Pages: 28,	*/
+char *getTags(char* id, char* galleryId, char* pages) {
+    char storedTags[10][25][100];
+    char *dataTypes[] = {"Title", "Gallery-Id", "Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories", "Pages"};
+    int tagSizes[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-	// printf("tag = %s\n", tagStore[3][1]);
+    int c = 0;
+    int tagType = 0;
+    // puts(storedData);
+    while (storedData[c] != '\0') {
+        if (storedData[c] == 'm' && storedData[c + 5] == 'i' && storedData[c + 15] == 'n' && storedData[c + 21] == 'c') {
+            // TITLE
+            c += 30;
+            uint8_t i = 0;
+            while (storedData[c + 2] != '/') {
+                storedTags[tagType][0][i] = storedData[c];
+                c++;
+                i++;
+            }
+            storedTags[tagType][0][i] = '\0';
+            puts(storedTags[tagType][0]);
+            tagSizes[tagType] = 1;
+            tagType++;
+        } else if (storedData[c] == 'm' && storedData[c + 29] == '=' && storedData[c + 53] == 'g' && storedData[c + 61] == 's') {
+            // GALLERY ID
+            // <meta-itemprop="image"-content="https://t.nhentai.net/galleries/941176/cover.jpg"-/>
+            c+=63;
+            uint8_t i = 0;
+            while (storedData[c] != '/') {
+                storedTags[tagType][0][i] = storedData[c];
+                c++;
+                i++;
+            }
+            storedTags[tagType][0][i] = '\0';
+            tagSizes[tagType] = 1;
+            tagType++;
+        } else if (storedData[c] == 'P' && storedData[c + 2] == 'r' && storedData[c + 8] == ':') {
+            /*Parodies:
+            >>>princess-connect>>314>>>>>*/
+            uint8_t lineCount = 0;
+            while (lineCount < 15) {
+                do { c++; } while (storedData[c - 1] != '\n');
+                lineCount++;
 
-	char *file = malloc(12 * sizeof(char*));
+                uint8_t tagStoreCount = 0;
+                uint8_t testIterate = 0;
+                while (storedData[c] != '\n') {
+                    // get past the >
+                    while (storedData[c] == '>') {
+                        c++;
+                    }
+                    // if we are saving
+                    if (storedData[c] != '>' && storedData[c] != '\n' && testIterate % 2 == 0) {
+                        uint8_t i = 0;
+                        while (storedData[c] != '>' && storedData[c] != '\n') {
+                            // putchar(storedData[c]);
+                            storedTags[tagType][tagStoreCount][i] = storedData[c];
+                            c++;
+                            i++;
+                        }
+                        storedTags[tagType][tagStoreCount][i] = '\0';
+                        tagSizes[tagType] = (tagStoreCount + 1);
+                        // printf("storedTags %d %d    %s\n", tagType, tagSizes[tagType], storedTags[tagType][tagStoreCount]);
+                        tagStoreCount++;
+                    } else {
+                        // skip
+                        while (storedData[c] != '>' && storedData[c] != '\n') {
+                            c++;
+                        }
+                    }
+                    // finish
+                    if (storedData[c] == '>') {
+                        testIterate++;
+                    }
+                }
+                c++;
+                lineCount++;
+                tagType++;
+            }
+        }
+        c++;
+    }
+    // make the directory name
+    // this was erroring because sometimes size is becoming too big, I'm unsure if this is still a problem since the bufsize is so large
+    size_t bufsize = 128;
+    char *directory = (char *) malloc(bufsize);
+    if (NAMING != 0) {
+        size_t size = snprintf(directory, bufsize, "%s_", id);
+        // size++;
+        for (uint8_t x = 0; x < tagSizes[(NAMING - 1)]; x++) {
+            // puts(storedTags[(NAMING - 1)][x]);
+            // printf("%ld\n", size);
+            if ((x + 1) >= tagSizes[(NAMING - 1)]) {
+                size += snprintf(directory+size, bufsize, "%s", storedTags[(NAMING - 1)][x]);
+            } else {
+                size += snprintf(directory+size, bufsize, "%s_", storedTags[(NAMING - 1)][x]);
+            }
+            
+            if (size >= bufsize) {
+                bufsize += 64;
+                directory = (char *) realloc(directory, bufsize);
+            }
+        }
+    }
 
-	snprintf(file, 12, "%s.txt", id);
-	snprintf(directory, (strlen(id) + 2), "%s_", id);
+    mkdir(directory, 0700);
 
-	bool namingScheme = false;
-	bool getId = true;
-	bool getPages = false;
+    char *tagsFile = (char*) malloc(bufsize + 15);
+    snprintf(tagsFile, (bufsize + 15), "%s/%s.txt", directory, id);
 
-	FILE *fileWrite;
-    fileWrite = fopen(file, "w");
+    // write tags to file
+    FILE *fileWrite;
+    fileWrite = fopen(tagsFile, "w");
+    free(tagsFile);
+    for (uint8_t y = 0; y < 10; y++) {
+        fprintf(fileWrite, "%s: ", dataTypes[y]);
+        for (uint8_t x = 0; x < tagSizes[y]; x++) {
+            if ((x + 1) >= tagSizes[y]) {
+                fprintf(fileWrite, "%s", storedTags[y][x]);
+            } else {
+                fprintf(fileWrite, "%s, ", storedTags[y][x]);
+            }
+        }
+        fprintf(fileWrite, "\n");
+    }
+    fclose(fileWrite);
 
-    snprintf(gid, strlen(gid), "\0");
-    snprintf(pages, strlen(pages), "\0");
+    /*for (uint8_t y = 0; y < 10; y++) {
+        printf("%s: ", dataTypes[y]);
+        for (uint8_t x = 0; x < tagSizes[y]; x++) {
+            if ((x + 1) >= tagSizes[y]) {
+                printf("%s", storedTags[y][x]);
+            } else {
+                printf("%s, ", storedTags[y][x]);
+            }
+        }
+        printf("\n");
+    }*/
 
-    size_t c = 0;
-    size_t di = 0;
-
-	while (storedData[c] != '\0') {
-		// TITLE
-		if (storedData[c] == 'm' && storedData[c + 5] == 'i' && storedData[c + 15] == 'n' && storedData[c + 21] == 'c') {
-			c += 30;
-			fprintf(fileWrite, "Title: ");
-			while (storedData[c] != '\"') {
-				putchar(storedData[c]);
-				fprintf(fileWrite, "%c", storedData[c]);
-				c++;
-			}
-			putchar('\n');
-			fprintf(fileWrite, "\n");
-		}
-		c++;
-		// GALLERY ID
-		// galleries/\\(.*\\)/cover.*\"-/><meta-property=\"og:type\"
-		if (storedData[c] == 'g' && storedData[c + 1] == 'a' && storedData[c + 8] == 's' && getId == true) {
-			c+=10;
-			fprintf(fileWrite, "Gallery-Id: ");
-			while (storedData[c] != '/') {
-				fprintf(fileWrite, "%c", storedData[c]);
-				sprintf(gid, "%s%c", gid, storedData[c]);
-				c++;
-			}
-			fprintf(fileWrite, "\n");
-			getId = false;
-		}
-		// TAGS
-		// start if charecter is a new line and next charecter is a capital and not U; avoiding the uploaded class
-		if (storedData[c] == '\n' && storedData[c + 1] >= 65 && storedData[c + 1] <= 90 && storedData[c + 1] != 'U') {
-			c++;
-			// for naming scheme
-			if (storedData[c] == NAMING[0] && storedData[c + 1] == NAMING[1] && storedData[c + 2] == NAMING[2]) {
-				namingScheme = true;
-			}
-			if (storedData[c] == 'P' && storedData[c + 1] == 'a' && storedData[c + 2] == 'g') {
-				getPages = true;
-			}
-
-			// print the tag class, i.e Parodies:
-			while (storedData[c] != '\n') {
-				fprintf(fileWrite, "%c", storedData[c]);
-				c++;
-			}
-			// formating
-			fprintf(fileWrite, " ");
-			c++;
-			int test = 0;
-			while (storedData[c + 1] != '\n') {
-				// iterate the amount of >
-				if (storedData[c] == '>') {
-					test++;
-				}
-				// there are only 2 > infront of the amount of tags; don't print that
-				while (storedData[c] != '>' && test >= 3) {
-					if (getPages == true) {
-						sprintf(pages, "%s%c", pages, storedData[c]);
-					}
-					if (namingScheme == true) {
-						sprintf(directory, "%s%c", directory, storedData[c]);
-					}
-
-					fprintf(fileWrite, "%c", storedData[c]);
-					if (storedData[c + 1] == '>') {
-						if (getPages == true) {
-							sprintf(pages, "%s\0", pages);
-						}
-						if (namingScheme == true) {
-							sprintf(directory, "%s_", directory);
-						}
-						fprintf(fileWrite, ", ");
-						test = 0;
-					}
-					c++;
-				}
-				c++;
-			}
-			fprintf(fileWrite, "\n");
-		}
-		namingScheme = false;
-		getPages = false;
-	}
-
-	fclose(fileWrite);
-	int i = 0;
-	while (directory[i + 1] != '\0') {
-		i++;
-	}
-	directory[i] = '\0';
-
-	char *new = malloc(75 * sizeof(char*));
-	sprintf(new, "%s/%s", directory, file);
-	mkdir(directory, 0700);
-	rename(file, new);
+    snprintf(galleryId, 10, "%s", storedTags[1][0]);
+    snprintf(pages, 5, "%s", storedTags[9][0]);
+    return directory;
 }
 
 int main(int argc, char **argv) {
-	// 219076	nothing special
-	// 165598	page 2 is a png (rest jpg); good for debugging
-	// https://i.nhentai.net/galleries/1075519/1.jpg
-	if (argc < 2) {
-		printf("NO ID SPECIFIED, EXITING\n");
-	}
-	for (int doujin = 1; doujin < argc; doujin++) {
-		printf("Downloading (%d/%d) %s : ", doujin, (argc - 1), argv[doujin]);
+    // 219076	nothing special
+    // 165598	page 2 is a png (rest jpg); good for debugging
+    // 295107	huge amount of tags
+    // 267595   weird issue
+    if (argc < 2) {
+        printf("NO ID SPECIFIED, EXITING\n");
+    }
+    for (int doujin = 1; doujin < argc; doujin++) {
+        printf("Downloading (%d/%d) %s : ", doujin, (argc - 1), argv[doujin]);
+        char *currentUrl = (char *) malloc(35);
+        sprintf(currentUrl, "https://nhentai.net/g/%s/", argv[doujin]);
+        getHtml(currentUrl);
+        free(currentUrl);
+        // puts(storedData);
 
-		char *currentUrl = malloc(35 * sizeof(char*));
-		sprintf(currentUrl, "https://nhentai.net/g/%s/", argv[doujin]);
-		getHtml(currentUrl);
-		free(currentUrl);
-
-		char *directory = malloc(75 * sizeof(char));
-		char *galleryId = malloc(10 * sizeof(char));
-		char *pageNumber = malloc(4 * sizeof(char));
-
-		getTags(argv[doujin], directory, galleryId, pageNumber);
-
-		static int exI = 0;
-		static char* extensions[] = {"jpg", "png", "gif"};
-		for (int i = 1; i <= atoi(pageNumber); i++) {
-			while (doDownload(galleryId, i, directory, extensions[exI]) == 0) {
-				exI++;
-				if (exI > 2) {
-					exI = 0;
-				}
-			}
-			progressBar(i, atoi(pageNumber));
-		}
-		putchar('\n');
-	}
-	return 0;
-}
+        char *galleryId = (char *) malloc(10);
+        char *pageCount = (char *) malloc(5);
+        char *directory = getTags(argv[doujin], galleryId, pageCount);
+        // puts(galleryId);
+        // puts(pageCount);
+        // puts(directory);
+        
+        int exI = 0;
+        char* extensions[] = {"jpg", "png", "gif"};
+        for (uint8_t page = 1; page <= atoi(pageCount); page++) {
+            while (doDownload(galleryId, page, directory, extensions[exI]) == 0) {
+                exI++;
+                if (exI > 2) {
+                    exI = 0;
+                }
+            }
+            progressBar(page, atoi(pageCount));
+        }
+        putchar('\n');
+    }
+    return 0;
+} 

@@ -1,8 +1,11 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 
+#include <stdio.h>
+
 #include "main.h"
 #include "download.h"
+#include "../config.def.h"
 
 // this is the index of the storedData array to write from
 int writeDataI = 0;
@@ -22,8 +25,8 @@ static inline size_t existTest(const char *name) {
 static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
     // buf is a pointer to the data that curl has for us
     // size*nmemb is the size of the buffer
-    static int writing = 1;
-    static int newline = 0;
+    static size_t writing = 1;
+    static size_t newline = 0;
     if (writeDataI == 0) {
         newline = 0;
     }
@@ -81,10 +84,11 @@ int doDownload(char* gId, int gIndex, char* dDir, char* ext) {
     // https://i.nhentai.net/galleries/ = 32
     // other stuff = 8
 
-    char *url = malloc((40 + sizeof(gId)) * sizeof(char));
+    char *url = (char *) malloc((40 + sizeof(gId)));
     sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", gId, gIndex, ext);
-    char *file = malloc((8 + (sizeof(dDir) * sizeof(char*))) * sizeof(char));
-    sprintf(file, "%s/%03d.%s", dDir, gIndex, ext);
+    char *file = (char *) malloc((sizeof(dDir) + 30) * sizeof(char*));
+    // char *file = (char *) malloc(LIMIT + 15);
+    snprintf(file, ((sizeof(dDir) + 30) * sizeof(char*)),  "%s/%03d.%s", dDir, gIndex, ext);
 
     // our curl objects
     CURL* getImg;
