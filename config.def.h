@@ -14,7 +14,7 @@
 	9	Categories
 	10	Pages */
 // set NAMING to the corresponding number above
-#define NAMING 5
+#define NAMING 0
 
 /*	[0;31m	Red
 	[0;32m	Green
