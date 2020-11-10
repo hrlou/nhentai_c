@@ -8,13 +8,18 @@
 #include "download.h"
 #include "../config.def.h"
 
+#include <stdlib.h>
+#include <string.h>
+
+typedef enum {true, false} bool;
+
 void progressBar(float num, float den) {
     int index = 1;
     float perc = ((num / den) * 100);
-    printf("\r(%0.0f%) [\033[0;32m", perc);
-    for (float i = 0; i <= 50; i++) {
-        if (i <= (perc / 2)) {
-        	putchar('#');
+    printf("\r(%0.0f%) [%s", STATUS_COLOUR, perc);
+    for (float i = 0; i <= STATUS_SIZE; i++) {
+        if (i <= (perc / (100 / STATUS_SIZE))) {
+        	putchar(STATUS_SYMBOL);
         } else {
         	putchar(' ');
         }
@@ -23,7 +28,7 @@ void progressBar(float num, float den) {
     fflush(stdout);
 }
 
-void getTags(char* id, char* name, char* gid, char* pages) {
+void getTags(char* id, char* directory, char* gid, char* pages) {
 	/* 	0	Title: Shiki-nyan-wa-Producer-de-Lotion-Onanie-ga-Yamerarenai!
 		1	Gallery-Id: 1163557
 		2	Parodies: the-idolmaster, 
@@ -35,12 +40,13 @@ void getTags(char* id, char* name, char* gid, char* pages) {
 		8	Categories: doujinshi, 
 		9	Pages: 28,	*/
 
+	// printf("tag = %s\n", tagStore[3][1]);
 
+	char *file = malloc(12 * sizeof(char*));
 
-	char file[15];
-	sprintf(file, "%s.txt", id);
+	snprintf(file, 12, "%s.txt", id);
+	snprintf(directory, (strlen(id) + 2), "%s_", id);
 
-	sprintf(name, "%s_", id);
 	bool namingScheme = false;
 	bool getId = true;
 	bool getPages = false;
@@ -48,10 +54,11 @@ void getTags(char* id, char* name, char* gid, char* pages) {
 	FILE *fileWrite;
     fileWrite = fopen(file, "w");
 
-    sprintf(gid, "\0");
-    sprintf(pages, "\0");
+    snprintf(gid, strlen(gid), "\0");
+    snprintf(pages, strlen(pages), "\0");
 
-    int c = 0;
+    size_t c = 0;
+    size_t di = 0;
 
 	while (storedData[c] != '\0') {
 		// TITLE
@@ -112,7 +119,7 @@ void getTags(char* id, char* name, char* gid, char* pages) {
 						sprintf(pages, "%s%c", pages, storedData[c]);
 					}
 					if (namingScheme == true) {
-						sprintf(name, "%s%c", name, storedData[c]);
+						sprintf(directory, "%s%c", directory, storedData[c]);
 					}
 
 					fprintf(fileWrite, "%c", storedData[c]);
@@ -121,7 +128,7 @@ void getTags(char* id, char* name, char* gid, char* pages) {
 							sprintf(pages, "%s\0", pages);
 						}
 						if (namingScheme == true) {
-							sprintf(name, "%s_", name);
+							sprintf(directory, "%s_", directory);
 						}
 						fprintf(fileWrite, ", ");
 						test = 0;
@@ -135,16 +142,17 @@ void getTags(char* id, char* name, char* gid, char* pages) {
 		namingScheme = false;
 		getPages = false;
 	}
+
 	fclose(fileWrite);
 	int i = 0;
-	while (name[i + 1] != '\0') {
+	while (directory[i + 1] != '\0') {
 		i++;
 	}
-	name[i] = '\0';
+	directory[i] = '\0';
 
-	char new[75];
-	sprintf(new, "%s/%s", name, file);
-	mkdir(name, 0700);
+	char *new = malloc(75 * sizeof(char*));
+	sprintf(new, "%s/%s", directory, file);
+	mkdir(directory, 0700);
 	rename(file, new);
 }
 
@@ -157,14 +165,15 @@ int main(int argc, char **argv) {
 	}
 	for (int doujin = 1; doujin < argc; doujin++) {
 		printf("Downloading (%d/%d) %s : ", doujin, (argc - 1), argv[doujin]);
-		char currentUrl[35];
+
+		char *currentUrl = malloc(35 * sizeof(char*));
 		sprintf(currentUrl, "https://nhentai.net/g/%s/", argv[doujin]);
 		getHtml(currentUrl);
+		free(currentUrl);
 
-		char directory[LIMIT];
-		char galleryId[10];
-		char pageNumber[4];
-		// pageNumber[0] = '\0';
+		char *directory = malloc(75 * sizeof(char));
+		char *galleryId = malloc(10 * sizeof(char));
+		char *pageNumber = malloc(4 * sizeof(char));
 
 		getTags(argv[doujin], directory, galleryId, pageNumber);
 

@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <stdlib.h>
 
 #include "main.h"
 #include "download.h"
@@ -7,7 +8,7 @@
 int writeDataI = 0;
 int tagsDataI = 0;
 
-static inline int existTest(const char *name) {
+static inline size_t existTest(const char *name) {
     FILE *file;
     // if readible then return 1
     if ((file = fopen(name, "r")) != NULL) {
@@ -76,12 +77,14 @@ int getHtml(char* downloadUrl) {
     return 1;
 }
 
-int doDownload(char* id, int ind, char* dir, char* ext) {
-    // printf("%s\n%s\n%s\n", id, dir, ext);
-    char url[60];
-    sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", id, ind, ext);
-    char file[LIMIT];
-    sprintf(file, "%s/%03d.%s", dir, ind, ext);
+int doDownload(char* gId, int gIndex, char* dDir, char* ext) {
+    // https://i.nhentai.net/galleries/ = 32
+    // other stuff = 8
+
+    char *url = malloc((40 + sizeof(gId)) * sizeof(char));
+    sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", gId, gIndex, ext);
+    char *file = malloc((8 + (sizeof(dDir) * sizeof(char*))) * sizeof(char));
+    sprintf(file, "%s/%03d.%s", dDir, gIndex, ext);
 
     // our curl objects
     CURL* getImg;
@@ -91,16 +94,14 @@ int doDownload(char* id, int ind, char* dir, char* ext) {
     // printf("%s\n", url);
     // only download if the file doesn't exist
     if (existTest(file) == 0) {
-        // initialise
         getImg = curl_easy_init();
-        // open the image file
         img = fopen(file, "w");
-        // error if we cannot
         if (img == NULL) {
             return 0;
         }
         // set url
         curl_easy_setopt(getImg, CURLOPT_URL, url);
+        free(url);
         curl_easy_setopt(getImg, CURLOPT_WRITEFUNCTION, NULL);
         // fail if we get an error
         curl_easy_setopt(getImg, CURLOPT_FAILONERROR, 1);
