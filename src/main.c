@@ -113,6 +113,7 @@ char *getTags(char* id, char* galleryId, char* pages) {
     // this was erroring because sometimes size is becoming too big, I'm unsure if this is still a problem since the bufsize is so large
     size_t bufsize = 128;
     char *directory = (char *) malloc(bufsize);
+    snprintf(directory, bufsize, "%s", id);
     if (NAMING != 0) {
         size_t size = snprintf(directory, bufsize, "%s_", id);
         // size++;
@@ -130,14 +131,9 @@ char *getTags(char* id, char* galleryId, char* pages) {
                 directory = (char *) realloc(directory, bufsize);
             }
         }
-    } else {
-        char *directory = (char *) malloc(20);
-	snprintf(directory, 20, "%s\0", id);
-	// broken for some odd reason
-	puts(directory);
     }
 
-    mkdir(directory, 0700);
+    mkdir(directory, 0777);
 
     char *tagsFile = (char*) malloc(bufsize + 15);
     snprintf(tagsFile, (bufsize + 15), "%s/%s.txt", directory, id);
