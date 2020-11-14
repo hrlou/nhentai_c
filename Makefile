@@ -1,14 +1,15 @@
-CC = gcc-9.3.0
 PREFIX = "/usr/local"
+CC = "gcc"
+CFLAGS = "-O2"
 
 nhentai: main.o download.o
-	$(CC) main.o -lcurl download.o -o nhentai
+	$(CC) $(CFLAGS) main.o -lcurl download.o -o nhentai
 
 main.o: src/main.c src/main.h config.def.h
-	$(CC) -Wformat=0 -c src/main.c
+	$(CC) $(CFLAGS) -Wformat=0 -c src/main.c
 	
 download.o: src/download.c src/download.h
-	$(CC) -c src/download.c
+	$(CC) $(CFLAGS) -c src/download.c
 
 clean:
 	rm *.o nhentai

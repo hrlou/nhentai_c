@@ -6,6 +6,7 @@
 #include "main.h"
 #include "download.h"
 #include "../config.def.h"
+#include "global.h"
 
 // this is the index of the storedData array to write from
 int writeDataI = 0;

@@ -9,6 +9,9 @@
 #include "main.h"
 #include "download.h"
 #include "../config.def.h"
+#include "global.h"
+
+char storedData[15000];
 
 void progressBar(float num, float den) {
     int index = 1;
@@ -127,6 +130,11 @@ char *getTags(char* id, char* galleryId, char* pages) {
                 directory = (char *) realloc(directory, bufsize);
             }
         }
+    } else {
+        char *directory = (char *) malloc(20);
+	snprintf(directory, 20, "%s\0", id);
+	// broken for some odd reason
+	puts(directory);
     }
 
     mkdir(directory, 0700);
