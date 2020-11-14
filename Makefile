@@ -2,14 +2,21 @@ PREFIX = "/usr/local"
 CC = "gcc"
 CFLAGS = "-O2"
 
-nhentai: main.o download.o
-	$(CC) $(CFLAGS) main.o -lcurl download.o -o nhentai
+nhentai: main.o search.o parse.o download.o
+	$(CC) $(CFLAGS) main.o search.o parse.o -lcurl download.o -o nhentai
 
 main.o: src/main.c src/main.h config.def.h
-	$(CC) $(CFLAGS) -Wformat=0 -c src/main.c
+	$(CC) $(CFLAGS) -c src/main.c
+
+search.o: src/search.c src/search.h
+	$(CC) $(CFLAGS) -c src/search.c
+
+parse.o: src/parse.c src/parse.h config.def.h
+	$(CC) $(CFLAGS) -c src/parse.c
 	
 download.o: src/download.c src/download.h
 	$(CC) $(CFLAGS) -c src/download.c
+
 
 clean:
 	rm *.o nhentai

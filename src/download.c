@@ -6,13 +6,11 @@
 #include "main.h"
 #include "download.h"
 #include "../config.def.h"
-#include "global.h"
 
-// this is the index of the storedData array to write from
-int writeDataI = 0;
-int tagsDataI = 0;
+// this is the index of the stored_data array to write from
+int write_data_iterate = 0;
 
-static inline size_t existTest(const char *name) {
+static inline size_t exist_test(const char *name) {
     FILE *file;
     // if readible then return 1
     if ((file = fopen(name, "r")) != NULL) {
@@ -23,16 +21,16 @@ static inline size_t existTest(const char *name) {
     return 0;
 }
 
-static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
-    // buf is a pointer to the data that curl has for us
-    // size*nmemb is the size of the buffer
+static size_t write_callback_doujin(char* buf, size_t size, size_t nmemb, void* up) {
+    /*  buf is a pointer to the data that curl has for us
+        size*nmemb is the size of the buffer    */
     static size_t writing = 1;
     static size_t newline = 0;
-    if (writeDataI == 0) {
+    if (write_data_iterate == 0) {
         newline = 0;
     }
     for (int c = 0; c < size*nmemb; c++) {
-        // this is horrible, but it saves RAM and makes parsing easier
+        // this is horrible, but it saves memory and makes parsing easier
         if (buf[c] == '\n') {
             newline++;
         }
@@ -47,11 +45,11 @@ static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
         }
         if (writing == 1) {
             if (buf[c] == ' ') {
-                storedData[writeDataI] = '-';
-                writeDataI++;
+                stored_data[write_data_iterate] = '-';
+                write_data_iterate++;
             } else if (buf[c] != '\t') {
-                storedData[writeDataI] = buf[c];
-                writeDataI++;
+                stored_data[write_data_iterate] = buf[c];
+                write_data_iterate++;
             }    
         }
     }
@@ -59,70 +57,87 @@ static size_t writeCallBack(char* buf, size_t size, size_t nmemb, void* up) {
     return size*nmemb;
 }
 
-int getHtml(char* downloadUrl) {
+static size_t write_callback_search(char* buf, size_t size, size_t nmemb, void* up) {
+    for (int c = 0; c < size*nmemb; c++) {
+        stored_data[write_data_iterate] = buf[c];
+        write_data_iterate++;
+        if (write_data_iterate >= 30000) {
+            return 0;
+        }
+    }
+    // tell curl how many bytes we handled
+    return size*nmemb;
+}
+
+
+int get_html(char* download_url, int option) {
     // our curl objects
-    CURL* getHtml;
-    CURLcode getHtmlResult;
+    CURL* get_html;
+    CURLcode get_html_result;
     // initialise
-    getHtml = curl_easy_init();
-    curl_easy_setopt(getHtml, CURLOPT_URL, downloadUrl);
+    get_html = curl_easy_init();
+    curl_easy_setopt(get_html, CURLOPT_URL, download_url);
     // send the html data to the call back function
-    curl_easy_setopt(getHtml, CURLOPT_WRITEFUNCTION, &writeCallBack);
-    getHtmlResult = curl_easy_perform(getHtml);
+    if (option == 0) {
+        curl_easy_setopt(get_html, CURLOPT_WRITEFUNCTION, &write_callback_doujin);
+    } else if (option == 1) {
+        curl_easy_setopt(get_html, CURLOPT_WRITEFUNCTION, &write_callback_search);
+    }
+    get_html_result = curl_easy_perform(get_html);
     // if we fail
-    if (getHtmlResult) {
+    if (get_html_result) {
         // need to reset the index
-        writeDataI = 0;
-        curl_easy_cleanup(getHtml);
+        write_data_iterate = 0;
+        curl_easy_cleanup(get_html);
         return 0;
     }
-    writeDataI = 0;
-    curl_easy_cleanup(getHtml);
+    write_data_iterate = 0;
+    curl_easy_cleanup(get_html);
     return 1;
 }
 
-int doDownload(char* gId, int gIndex, char* dDir, char* ext) {
+int download_gallery(char* gallery_id, int gallery_index, char* download_directory, char* download_extension) {
     // https://i.nhentai.net/galleries/ = 32
     // other stuff = 8
 
-    char *url = (char *) malloc((40 + sizeof(gId)));
-    sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", gId, gIndex, ext);
-    char *file = (char *) malloc((sizeof(dDir) + 30) * sizeof(char*));
+    char *url = (char *) malloc((40 + sizeof(gallery_id)));
+    sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", gallery_id, gallery_index, download_extension);
+    char *file = (char *) malloc((sizeof(download_directory) + 30) * sizeof(char*));
     // char *file = (char *) malloc(LIMIT + 15);
-    snprintf(file, ((sizeof(dDir) + 30) * sizeof(char*)),  "%s/%03d.%s", dDir, gIndex, ext);
+    snprintf(file, ((sizeof(download_directory) + 30) * sizeof(char*)),  "%s/%03d.%s", download_directory, gallery_index, download_extension);
 
     // our curl objects
-    CURL* getImg;
-    CURLcode getImgResult;
-    FILE *img;
+    CURL* get_img;
+    CURLcode get_img_result;
+    FILE *img_output;
 
     // printf("%s\n", url);
     // only download if the file doesn't exist
-    if (existTest(file) == 0) {
-        getImg = curl_easy_init();
-        img = fopen(file, "w");
-        if (img == NULL) {
+    if (exist_test(file) == 0) {
+        get_img = curl_easy_init();
+        img_output = fopen(file, "w");
+        if (img_output == NULL) {
             return 0;
         }
         // set url
-        curl_easy_setopt(getImg, CURLOPT_URL, url);
+        curl_easy_setopt(get_img, CURLOPT_URL, url);
         free(url);
-        curl_easy_setopt(getImg, CURLOPT_WRITEFUNCTION, NULL);
+        curl_easy_setopt(get_img, CURLOPT_WRITEFUNCTION, NULL);
         // fail if we get an error
-        curl_easy_setopt(getImg, CURLOPT_FAILONERROR, 1);
+        curl_easy_setopt(get_img, CURLOPT_FAILONERROR, 1);
         // write data to the image file
-        curl_easy_setopt(getImg, CURLOPT_WRITEDATA, img);
-        getImgResult = curl_easy_perform(getImg);
+        curl_easy_setopt(get_img, CURLOPT_WRITEDATA, img_output);
+        get_img_result = curl_easy_perform(get_img);
 
         // page download fail
-        if (getImgResult) {
-            fclose(img);
+        if (get_img_result) {
+            fclose(img_output);
             remove(file);
-            curl_easy_cleanup(getImg);
+            curl_easy_cleanup(get_img);
             return 0;
         }
-        curl_easy_cleanup(getImg);
-        fclose(img);
+        curl_easy_cleanup(get_img);
+        fclose(img_output);
     }
     return 1; 
 }
