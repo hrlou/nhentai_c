@@ -35,7 +35,7 @@ void do_search(char *search_terms, int size) {
 int search_menu(void) {
 	/*	currently a demo of how this feature will work\
 		these values are preset */
-	/*printf("Input Search Term:\n");
+	printf("Input Search Term:\n");
    	char search_terms[SEARCH_LIMIT];
    	fgets(search_terms, SEARCH_LIMIT, stdin);
    	int i = 0;
@@ -45,9 +45,9 @@ int search_menu(void) {
    		}
    		i++;
    	}
-   	search_terms[i] = '\0';*/
-   	// do_search(search_terms, i);
-   	do_search("shiki-ichinose+japanese", 23);
+   	search_terms[i] = '\0';
+   	do_search(search_terms, i);
+   	/* do_search("shiki-ichinose+japanese", 23);
 	char *search_ids[LIMIT] = {"253566", "305586", "153769", "254048", "164586", "172788", "278421", "257136", "256121", "219249", "306902", "319329", "207372", "179001", "191772", "179871", "190100", "232557", "254000", "191598", "219165", "174828", "289789", "290911", "258819"};
 	
 	int starting_point = 1;
@@ -79,9 +79,7 @@ int search_menu(void) {
 				doujin_choice = 'z';
 				break;
 		}
- 			
-
-		/*
+		
 			printf("Selected (%s)\n", search_ids[(doujin_choice - 1)]);
 			// download
 			printf("download (d), tags (t), preview (p), back (b), exit (e): ");
