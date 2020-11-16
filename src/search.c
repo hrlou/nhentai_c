@@ -91,6 +91,6 @@ int search_menu(void) {
 				doujin_download(search_ids[(doujin_choice - 1)]);
 				putchar('\n');
 			}
-			*/
-	}
+
+	}*/
 }
