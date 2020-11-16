@@ -3,9 +3,9 @@ nhentai downloader written in C only dependency being curl
 
 ## installation
 ```
-$ git clone https://github.com/hrlou/nhentai_c
-$ cd nhentai_c
-$ sudo make install
+git clone https://github.com/hrlou/nhentai_c.git
+cd nhentai_c
+sudo make install
 ```
 
 ## usage
