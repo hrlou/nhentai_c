@@ -2,6 +2,7 @@
 nhentai downloader written in C only dependency being curl
 
 ## installation
+I personally use GCC 11.2. I've had issues compiling the current version with clang 10. I am currently working on eliminating the global variables in the program which should ensure compatibility on all modern versions of GCC and Clang. In the meantime, if you have any issues building please update your compiler.
 ```
 git clone https://github.com/hrlou/nhentai_c.git
 cd nhentai_c
