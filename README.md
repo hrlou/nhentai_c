@@ -2,7 +2,7 @@
 nhentai downloader written in C only dependency being curl
 
 ## installation
-I personally use GCC 11.2. I've had issues compiling the current version with clang 10. I am currently working on eliminating the global variables in the program which should ensure compatibility on all modern versions of GCC and Clang. In the meantime, if you have any issues building please update your compiler.
+I personally use GCC 10.2. I've had issues compiling the current version with clang 10. I am currently working on eliminating the global variables in the program which should ensure compatibility on all modern versions of GCC and Clang. In the meantime, if you have any issues building please update your compiler.
 ```
 git clone https://github.com/hrlou/nhentai_c.git
 cd nhentai_c
@@ -19,14 +19,14 @@ It also generate a tags file named *DOUJIN-ID*.txt in said directory which conta
 ```
 Title: title
 Gallery-Id: id
-Parodies: parody, parody,
-Characters: person, person,
-Tags: tag, tag, tag,
-Artists: artist
+Parodies: parody, parody
+Characters: person, person
+Tags: tag, tag, tag
+Artists: artist, artist
 Groups: group
 Languages: language
 Categories: category
-Pages: #page
+Pages: number
 ```
 
 ## configuration
@@ -61,7 +61,7 @@ And other uses I haven't thought of
 - [x] Download Doujin
 - [x] Download Doujins Tags
 - [x] Name File Opon Tags
-- [ ] Directory configuration with accepted tags
+- [ ] Proper Exist Testing
 - [ ] Add command line options to the program, that can be enabled/disabled at compile time
 - [ ] Option to run in library mode
 - [ ] Option to compress to CBZ
