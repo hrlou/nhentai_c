@@ -47,7 +47,7 @@ The two scripts are to help you organise and share your doujin database.
 The "nhentai_rename" script is run in a directory that contains Doujins.  
 It renames everything in that directory to *DOUJIN-ID*_*YOUR-OPTION*.   
 It simply reads the text file the program generates to determine tags.
-## nhentai_gen
+### nhentai_gen
 The "nhentai_gen" script allows you to generate a shell script that when run will download your entire library and organize it as you have.   
 The purpose of this is to backup your library.   
 You might also think about using it to:
@@ -57,16 +57,16 @@ You might also think about using it to:
   
 And other uses I haven't thought of
 
+## UAV
+The program will have support with [UAV](https://github.com/hrlou/uav) (Universal Art Viewer) another project I've been working on when it's finished.
+
 ## Progress
 - [x] Download Doujin
 - [x] Download Doujins Tags
 - [x] Name File Opon Tags
 - [ ] Proper Exist Testing
-- [ ] Add command line options to the program, that can be enabled/disabled at compile time
-- [ ] Option to run in library mode
+- [ ] Proper Web Searching
 - [ ] Option to compress to CBZ
 - [ ] Option to choose a directory
-- [ ] Option to search by tags
-- [ ] Generate a library you can browse with thumbnails in html
 
 
