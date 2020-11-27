@@ -3,6 +3,7 @@
 
 // extern char stored_data[15000];
 extern char stored_data[30000];
+// extern char* stored_data;
 
 #ifndef __FreeBSD__
 int mkdir(const char *pathname, int mode);
