@@ -1,8 +1,6 @@
 #include <curl/curl.h>
 #include <stdlib.h>
 
-#include <stdio.h>
-
 #include "main.h"
 #include "download.h"
 #include "../config.def.h"
@@ -50,7 +48,11 @@ static size_t write_callback_doujin(char* buf, size_t size, size_t nmemb, void* 
             } else if (buf[c] != '\t') {
                 stored_data[write_data_iterate] = buf[c];
                 write_data_iterate++;
-            }    
+            } else if (buf[c] == '&' && buf[c + 1] == '#' && buf[c + 2] == '3') {
+                stored_data[write_data_iterate] = '\'';
+                c+=4;
+                write_data_iterate++;
+            }
         }
     }
     // tell curl how many bytes we handled
@@ -59,10 +61,16 @@ static size_t write_callback_doujin(char* buf, size_t size, size_t nmemb, void* 
 
 static size_t write_callback_search(char* buf, size_t size, size_t nmemb, void* up) {
     for (int c = 0; c < size*nmemb; c++) {
-        stored_data[write_data_iterate] = buf[c];
-        write_data_iterate++;
         if (write_data_iterate >= 30000) {
             return 0;
+        }
+        if (buf[c] == '&' && buf[c + 1] == '#' && buf[c + 2] == '3') {
+            stored_data[write_data_iterate] = '\'';
+            c+=4;
+            write_data_iterate++;
+        } else {
+            stored_data[write_data_iterate] = buf[c];
+            write_data_iterate++;
         }
     }
     // tell curl how many bytes we handled
