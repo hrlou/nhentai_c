@@ -11,6 +11,12 @@ for main in */; do
             printf "$text " >> $DB_FILE
         fi
     done
+
+    for cbz in *.cbz; do
+        text="$(echo "${cbz}" | sed 's/_.*//')"
+        printf "$text " >> $DB_FILE
+    done
+
     printf "\n" >> $DB_FILE
     echo "cd ../" >> $DB_FILE
     cd "../" >> $DB_FILE
