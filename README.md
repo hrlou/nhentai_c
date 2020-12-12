@@ -1,6 +1,13 @@
 # nhentai-downloader
 nhentai downloader written in C only dependency being curl
 
+## dependencies
+In order to compile you need a version of curl that supports ssl, on Debian the package I used to provide this is.
+```
+libcurl4-openssl-dev
+```
+I assume that if you use a different distro you know how to search the repositories for any dependencies.
+
 ## installation
 I personally use GCC 10.2. I've had issues compiling the current version with clang 10. I am currently working on eliminating the global variables in the program which should ensure compatibility on all modern versions of GCC and Clang. In the meantime, if you have any issues building please update your compiler.
 ```

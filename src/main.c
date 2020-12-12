@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #include "main.h"
 #include "download.h"
@@ -38,16 +40,53 @@ void doujin_download(char* doujin) {
     
     int extension_iterate = 0;
     char* extension_types[] = {"jpg", "png", "gif"};
-    for (int page_current = 1; page_current <= atoi(page_count); page_current++) {
-        while (download_gallery(gallery_id, page_current, directory, extension_types[extension_iterate]) == 0) {
-            extension_iterate++;
-            if (extension_iterate > 2) {
-                extension_iterate = 0;
+    pid_t pid = fork();
+    int pages = atoi(page_count);
+    int j;
+    if (pages % 2 == 0) {
+        j = (pages / 2);
+    } else {
+        j = ((pages / 2) + 1);
+    }
+    // child process
+    if (pid==0) {
+        for (int page_current = 1; page_current <= j; page_current++) {
+            while (download_gallery(gallery_id, page_current, directory, extension_types[extension_iterate]) == 0) {
+                extension_iterate++;
+                if (extension_iterate > 2) {
+                    extension_iterate = 0;
+                }
             }
+            // progress_bar(page_current, pages);
         }
-        progress_bar(page_current, atoi(page_count));
+    } else {
+        int counter = 0;
+        for (int page_current = (j + 1); page_current <= pages; page_current++) {
+            while (download_gallery(gallery_id, page_current, directory, extension_types[extension_iterate]) == 0) {
+                extension_iterate++;
+                if (extension_iterate > 2) {
+                    extension_iterate = 0;
+                }
+            }
+            counter+=2;
+            progress_bar(counter, pages);
+        }
+        waitpid(pid,0,0);
+        progress_bar(pages, pages);
     }
     // curl_global_cleanup();
+
+    /*
+     for (int page_current = 1; page_current <= atoi(page_count); page_current++) {
+            while (download_gallery(gallery_id, page_current, directory, extension_types[extension_iterate]) == 0) {
+                extension_iterate++;
+                if (extension_iterate > 2) {
+                    extension_iterate = 0;
+                }
+            }
+            progress_bar(page_current, atoi(page_count));
+        }
+        */
 }
 
 int main(int argc, char **argv) {
