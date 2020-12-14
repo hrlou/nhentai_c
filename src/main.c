@@ -24,20 +24,20 @@ void progress_bar(float numerator, float denominator) {
     fflush(stdout);
 }
 
-void doujin_download(char* doujin) {
+void nhentai_download(char* doujin) {
     char *current_url = (char *) malloc(35);
     sprintf(current_url, "https://nhentai.net/g/%s/", doujin);
-    get_html(current_url, 0);
+    ntags nhentai = parse_tags(get_html(current_url));
+    printf("%s\n", nhentai.directory);
     free(current_url);
+
+
     // puts(stored_data);
 
-    char *gallery_id = (char *) malloc(10);
-    char *page_count = (char *) malloc(5);
-    char *directory = parse_tags(doujin, gallery_id, page_count);
     // puts(galleryId);
     // puts(pageCount);
     // puts(directory);
-    
+    /*
     int extension_iterate = 0;
     char* extension_types[] = {"jpg", "png", "gif"};
     // child process
@@ -50,13 +50,14 @@ void doujin_download(char* doujin) {
                     extension_iterate = 0;
                 }
             }
-            exit(127);
+            exit(0);
         } else {
             waitpid(pid, 0, 0);
             printf("Done\n");
             // progress_bar(atoi(page_count), atoi(page_count));
         }
     }
+    */
 }
 
 int main(int argc, char **argv) {
@@ -64,14 +65,9 @@ int main(int argc, char **argv) {
     // 165598	page 2 is a png (rest jpg); good for debugging
     // 295107	huge amount of tags
     // 267595   weird issue
-    if (argc < 2) {
-        printf("Search is Currently just a demo!\n");
-        search_menu();
-        exit(0);
-    }
     for (int doujin_iterate = 1; doujin_iterate < argc; doujin_iterate++) {
         printf("Downloading (%d/%d) %s : ", doujin_iterate, (argc - 1), argv[doujin_iterate]);
-        doujin_download(argv[doujin_iterate]);
+        nhentai_download(argv[doujin_iterate]);
         putchar('\n');  
     }
     return 0;

@@ -1,27 +1,13 @@
 #include <curl/curl.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "main.h"
 #include "download.h"
 #include "../config.def.h"
 
-// this is the index of the stored_data array to write from
-int write_data_iterate = 0;
-
-static inline size_t exist_test(const char *name) {
-    FILE *file;
-    // if readible then return 1
-    if ((file = fopen(name, "r")) != NULL) {
-        fclose(file);
-        return 1;
-    }
-    // if file is NULL it won't open, no memory leak
-    return 0;
-}
-
+/*
 static size_t write_callback_doujin(char* buf, size_t size, size_t nmemb, void* up) {
-    /*  buf is a pointer to the data that curl has for us
-        size*nmemb is the size of the buffer    */
     static size_t writing = 1;
     static size_t newline = 0;
     if (write_data_iterate == 0) {
@@ -58,50 +44,46 @@ static size_t write_callback_doujin(char* buf, size_t size, size_t nmemb, void* 
     // tell curl how many bytes we handled
     return size*nmemb;
 }
+*/
 
-static size_t write_callback_search(char* buf, size_t size, size_t nmemb, void* up) {
-    for (int c = 0; c < size*nmemb; c++) {
-        if (write_data_iterate >= 30000) {
-            return 0;
-        }
-        if (buf[c] == '&' && buf[c + 1] == '#' && buf[c + 2] == '3') {
-            stored_data[write_data_iterate] = '\'';
-            c+=4;
-            write_data_iterate++;
-        } else {
-            stored_data[write_data_iterate] = buf[c];
-            write_data_iterate++;
-        }
+static inline size_t exist_test(const char *name) {
+    FILE *file;
+    // if readible then return 1
+    if ((file = fopen(name, "r")) != NULL) {
+        fclose(file);
+        return 1;
     }
-    // tell curl how many bytes we handled
-    return size*nmemb;
+    // if file is NULL it won't open, no memory leak
+    return 0;
 }
 
+static size_t write_callback(char* buf, size_t size, size_t nmemb, void *pass) {
+    size_t realsize = size*nmemb;
+    // interpret the typless pass
+    curl_memory *mem = (curl_memory *)pass;
+    mem->data = realloc(mem->data, mem->size + realsize + 1);
+    // copy buf (which contains the data in the curl buffer) into the newly re-allocated pointer
+    memcpy(&(mem->data[mem->size]), buf, realsize);
+    // iterate the size by the number of bytes handled
+    mem->size += realsize;
+    mem->data[mem->size] = 0;
+    return realsize;
+}
 
-int get_html(char* download_url, int option) {
-    // our curl objects
-    CURL* get_html;
-    CURLcode get_html_result;
+curl_memory get_html(char* input_url) {
+    curl_memory html;
+    html.size = 0;
+    CURL* curl_get_html;
     // initialise
-    get_html = curl_easy_init();
-    curl_easy_setopt(get_html, CURLOPT_URL, download_url);
+    curl_get_html = curl_easy_init();
+    curl_easy_setopt(curl_get_html, CURLOPT_URL, input_url);
     // send the html data to the call back function
-    if (option == 0) {
-        curl_easy_setopt(get_html, CURLOPT_WRITEFUNCTION, &write_callback_doujin);
-    } else if (option == 1) {
-        curl_easy_setopt(get_html, CURLOPT_WRITEFUNCTION, &write_callback_search);
-    }
-    get_html_result = curl_easy_perform(get_html);
-    // if we fail
-    if (get_html_result) {
-        // need to reset the index
-        write_data_iterate = 0;
-        curl_easy_cleanup(get_html);
-        return 0;
-    }
-    write_data_iterate = 0;
-    curl_easy_cleanup(get_html);
-    return 1;
+    curl_easy_setopt(curl_get_html, CURLOPT_WRITEFUNCTION, &write_callback);
+    // give the callback function the file descriptor 
+    curl_easy_setopt(curl_get_html, CURLOPT_WRITEDATA, (void *)&html);
+    curl_easy_perform(curl_get_html);
+    curl_easy_cleanup(curl_get_html);
+    return html;
 }
 
 int download_gallery(char* gallery_id, int gallery_index, char* download_directory, char* download_extension) {

@@ -6,12 +6,9 @@
 #endif
 
 #include "main.h"
+#include "download.h"
+#include "parse.h"
 #include "../config.def.h"
-
-// needs to be defined
-// char stored_data[15000];
-char stored_data[30000];
-// char *stored_data;
 
 char* get_range(char data[], int start, int end) {
     int count = 0;
@@ -23,59 +20,46 @@ char* get_range(char data[], int start, int end) {
     return return_value;
 }
 
-char** parse_search(void) {
-    int c = 0;
-    int count = 1;
-    char **searched_ids = (char**) malloc(51 * sizeof(char*));
-    while (stored_data[c] != '\0') {
-        if (stored_data[c] == '<' && stored_data[c + 10] == 'g' && stored_data[c + 11] != 'r') {
-            c+=12;
-            int start = c;
-            while (stored_data[c] != '/') {
-                c++;
-            }
-            searched_ids[count] = get_range(stored_data, start, c);
-            count++;
-            while (1) {
-                c++;
-                if (stored_data[c] == '"' && stored_data[c + 1] == 'c' && stored_data[c + 2] == 'a' && stored_data[c + 3] == 'p' && stored_data[c + 4] == 't') {
-                    c+=10;
-                    // shorten the names
-                    if (stored_data[c] == '(') {
-                        while (stored_data[c - 1] != ')') {
-                            c++;
-                        }
-                        if (stored_data[c] == ' ') {
-                            c++;
-                        }
-                    }
-                    if (stored_data[c] == '[') {
-                        while (stored_data[c - 1] != ']') {
-                            c++;
-                        }
-                        if (stored_data[c] == ' ') {
-                            c++;
-                        }
-                    }
-                    int start = c;
-                    while (stored_data[c + 1] != '(' && stored_data[c] != '<') {
-                        if (stored_data[c] != '\n') {
-                            c++;
-                        }
-                    }
-                    searched_ids[count] = get_range(stored_data, start, c);
-                    break;
-                }
-            }
-            count++;
+char* sanitise_tags(char* buf, size_t size) {
+    char* return_data = (char*)malloc(size);  
+    int i = 0;
+    int newline = 0;
+    int writing = 0;
+    for (int c = 0; c < size; c++) {
+        // this is horrible, but it saves memory and makes parsing easier
+        if (buf[c] == '\n') {
+            newline++;
         }
-        c++;
+        if (buf[c] == '<' || buf[c] == '\\') {
+            writing = 0;
+        }
+        if (buf[c] == '>') {
+            writing = 1;
+        }
+        if (newline < 5) {
+            writing = 1;
+        }
+        if (writing == 1) {
+            if (buf[c] == ' ') {
+                return_data[i] = '-';
+                i++;
+            } else if (buf[c] != '\t') {
+                return_data[i] = buf[c];
+                i++;
+            } else if (buf[c] == '&' && buf[c + 1] == '#' && buf[c + 2] == '3') {
+                return_data[i] = '\'';
+                c+=4;
+                i++;
+            }
+        }
     }
-    sprintf(searched_ids[0], "%d", (count - 1));
-    return searched_ids;
+    return return_data;
 }
 
-char *parse_tags(char* doujin_id, char* gallery_id, char* page_count) {
+ntags parse_tags(curl_memory data) {
+    ntags tags;
+    char* stored_data = sanitise_tags(data.data, data.size);
+    printf("%s\n", stored_data);
     char tags_stored[10][25][100];
     char *tag_types[] = {"Title", "Gallery-Id", "Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories", "Pages"};
     int tag_sizes[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -158,10 +142,9 @@ char *parse_tags(char* doujin_id, char* gallery_id, char* page_count) {
     }
     // make the directory name
     // this was erroring because sometimes size is becoming too big, I'm unsure if this is still a problem since the bufsize is so large
-    size_t bufsize = 128;
+    /*size_t bufsize = 128;
     char *directory = (char *) malloc(bufsize);
     snprintf(directory, bufsize, "%s", doujin_id);
-    /* Generate a name by going through the tag type specified in config.def.h */
     if (NAMING != 0) {
         size_t size = snprintf(directory, bufsize, "%s_", doujin_id);
         // size++;
@@ -201,21 +184,17 @@ char *parse_tags(char* doujin_id, char* gallery_id, char* page_count) {
         }
         fprintf(file_write, "\n");
     }
-    fclose(file_write);
-
-    /*for (int y = 0; y < 10; y++) {
-        printf("%s: ", tag_types[y]);
+    fclose(file_write);*/
+    for (int y = 0; y < 10; y++) {
+        fprintf(stderr, "%s: ", tag_types[y]);
         for (int x = 0; x < tag_sizes[y]; x++) {
             if ((x + 1) >= tag_sizes[y]) {
-                printf("%s", tags_stored[y][x]);
+                fprintf(stderr, "%s", tags_stored[y][x]);
             } else {
-                printf("%s, ", tags_stored[y][x]);
+                fprintf(stderr, "%s, ", tags_stored[y][x]);
             }
         }
-        printf("\n");
-    }*/
+        fprintf(stderr, "\n");
+    }
 
-    snprintf(gallery_id, 10, "%s", tags_stored[1][0]);
-    snprintf(page_count, 5, "%s", tags_stored[9][0]);
-    return directory;
 }
