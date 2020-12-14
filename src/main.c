@@ -28,7 +28,8 @@ void nhentai_download(char* doujin) {
     char *current_url = (char *) malloc(35);
     sprintf(current_url, "https://nhentai.net/g/%s/", doujin);
     ntags nhentai = parse_tags(get_html(current_url));
-    printf("%s\n", nhentai.directory);
+    printf("\n%s\n", nhentai.title);
+    printf("%s\n", nhentai.gallery_id);
     free(current_url);
 
 

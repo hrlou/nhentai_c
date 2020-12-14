@@ -59,10 +59,24 @@ char* sanitise_tags(char* buf, size_t size) {
 ntags parse_tags(curl_memory data) {
     ntags tags;
     char* stored_data = sanitise_tags(data.data, data.size);
-    printf("%s\n", stored_data);
+    /*printf("%s\n", stored_data);
     char tags_stored[10][25][100];
     char *tag_types[] = {"Title", "Gallery-Id", "Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories", "Pages"};
+    int tag_sizes[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};*/
     int tag_sizes[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    
+    char** tags_point[10];
+    tags_point[0] = &tags.title;
+    tags_point[1] = &tags.gallery_id;
+    tags_point[2] = &tags.parodies;
+    tags_point[3] = &tags.characters;
+    tags_point[4] = &tags.tags;
+    tags_point[5] = &tags.artists;
+    tags_point[6] = &tags.groups;
+    tags_point[7] = &tags.languages;
+    tags_point[8] = &tags.categories;
+    tags_point[9] = &tags.pages;
+
 
     int c = 0;
     int tag_type = 0;
@@ -71,32 +85,27 @@ ntags parse_tags(curl_memory data) {
         if (stored_data[c] == 'm' && stored_data[c + 5] == 'i' && stored_data[c + 15] == 'n' && stored_data[c + 21] == 'c') {
             // TITLE
             c += 30;
-            int i = 0;
-            while (stored_data[c + 2] != '/') {
-                tags_stored[tag_type][0][i] = stored_data[c];
-                c++;
+            int i = c;
+            while (stored_data[i + 2] != '/') {
                 i++;
             }
-            tags_stored[tag_type][0][i] = '\0';
-            puts(tags_stored[tag_type][0]);
-            tag_sizes[tag_type] = 1;
+            *tags_point[tag_type] = get_range(stored_data, c, i);
             tag_type++;
+            c = i;
         } else if (stored_data[c] == 'm' && stored_data[c + 29] == '=' && stored_data[c + 53] == 'g' && stored_data[c + 61] == 's') {
             // GALLERY ID
             // <meta-itemprop="image"-content="https://t.nhentai.net/galleries/941176/cover.jpg"-/>
             c+=63;
-            int i = 0;
-            while (stored_data[c] != '/') {
-                tags_stored[tag_type][0][i] = stored_data[c];
-                c++;
+            int i = c;
+            while (stored_data[i] != '/') {
                 i++;
             }
-            tags_stored[tag_type][0][i] = '\0';
+            *tags_point[tag_type] = get_range(stored_data, c, i);
             tag_sizes[tag_type] = 1;
             tag_type++;
-        } else if (stored_data[c] == 'P' && stored_data[c + 2] == 'r' && stored_data[c + 8] == ':') {
-            /*Parodies:
-            >>>princess-connect>>314>>>>>*/
+        }/* else if (stored_data[c] == 'P' && stored_data[c + 2] == 'r' && stored_data[c + 8] == ':') {
+            // Parodies:
+            // >>>princess-connect>>314>>>>>
             int line_count = 0;
             while (line_count < 15) {
                 do { c++; } while (stored_data[c - 1] != '\n');
@@ -137,7 +146,7 @@ ntags parse_tags(curl_memory data) {
                 line_count++;
                 tag_type++;
             }
-        }
+        }*/
         c++;
     }
     // make the directory name
@@ -184,7 +193,7 @@ ntags parse_tags(curl_memory data) {
         }
         fprintf(file_write, "\n");
     }
-    fclose(file_write);*/
+    fclose(file_write);
     for (int y = 0; y < 10; y++) {
         fprintf(stderr, "%s: ", tag_types[y]);
         for (int x = 0; x < tag_sizes[y]; x++) {
@@ -195,6 +204,6 @@ ntags parse_tags(curl_memory data) {
             }
         }
         fprintf(stderr, "\n");
-    }
-
+    }*/
+    return tags;
 }
