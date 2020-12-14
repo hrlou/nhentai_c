@@ -1,15 +1,15 @@
 PREFIX = "/usr/local"
 CC = "gcc"
-CFLAGS = "-O2"
+CFLAGS = "-std=c99"
 
-nhentai: main.o parse.o download.o
-	$(CC) $(CFLAGS) -o nhentai main.o parse.o download.o -lcurl 
+nhentai: main.o tags.o download.o
+	$(CC) $(CFLAGS) -o nhentai main.o tags.o download.o -lcurl 
 
 main.o: src/main.c src/main.h config.def.h
 	$(CC) $(CFLAGS) -c src/main.c
 
-parse.o: src/parse.c src/parse.h config.def.h
-	$(CC) $(CFLAGS) -c src/parse.c
+tags.o: src/tags.c src/tags.h config.def.h
+	$(CC) $(CFLAGS) -c src/tags.c 
 	
 download.o: src/download.c src/download.h
 	$(CC) $(CFLAGS) -c src/download.c
