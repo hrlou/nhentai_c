@@ -1,17 +1,17 @@
 PREFIX = "/usr/local"
 CC = "gcc"
-CFLAGS = "-std=c99"
+CFLAGS = "-Iinclude" "-std=c99" "-O2" "-Wall"
 
 nhentai: main.o tags.o download.o
 	$(CC) $(CFLAGS) -o nhentai main.o tags.o download.o -lcurl 
 
-main.o: src/main.c src/main.h config.def.h
+main.o: src/main.c include/main.h config.def.h
 	$(CC) $(CFLAGS) -c src/main.c
 
-tags.o: src/tags.c src/tags.h config.def.h
+tags.o: src/tags.c include/tags.h
 	$(CC) $(CFLAGS) -c src/tags.c 
 	
-download.o: src/download.c src/download.h
+download.o: src/download.c include/download.h
 	$(CC) $(CFLAGS) -c src/download.c
 
 

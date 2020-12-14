@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <errno.h>
 
 #ifdef __FreeBSD__
 #include <sys/stat.h>
@@ -57,8 +55,9 @@ void nhentai_download(ntags nhentai) {
     sprintf(textfile, "%s/%s.txt", directory, nhentai.id);
     mkdir(directory, 0777);
     // write_ntags(nhentai, textfile);
-    /*FILE* output;
+    FILE* output;
     output = fopen(textfile, "w");
+    // output = stderr;
     const char *tag_types[7] = {"Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories"};
     char*** tags_point[7] = {&nhentai.parodies, &nhentai.characters, &nhentai.tags, &nhentai.artists, &nhentai.groups, &nhentai.languages, &nhentai.categories};
     fprintf(output, "Title: %s\n", nhentai.title);
@@ -75,7 +74,8 @@ void nhentai_download(ntags nhentai) {
         fprintf(output, "\n");
     }
     fprintf(output, "Pages: %d", nhentai.pages);
-    fclose(output);*/
+    // exit(0);
+    fclose(output);
 
     int extension_iterate = 0;
     char* extension_types[] = {"jpg", "png", "gif"};
@@ -103,7 +103,8 @@ void nhentai_download(ntags nhentai) {
     int progess = 0;
 
     while ((pid = waitpid(-1, &status, 0))) {
-        if (pid == -1 && errno == ECHILD) {
+        // if (pid == -1 && errno == ECHILD) {
+        if (pid == -1) {
             break;
         } else if (pid == -1) {
             perror("waitpid");
@@ -116,9 +117,9 @@ void nhentai_download(ntags nhentai) {
 }
 
 int main(int argc, char **argv) {
-    // 219076	nothing special
-    // 165598	page 2 is a png (rest jpg); good for debugging
-    // 295107	huge amount of tags
+    // 219076   nothing special
+    // 165598   page 2 is a png (rest jpg); good for debugging
+    // 295107   huge amount of tags
     // 267595   weird issue
     for (int doujin_iterate = 1; doujin_iterate < argc; doujin_iterate++) {
         printf("Downloading (%d/%d) %s : ", doujin_iterate, (argc - 1), argv[doujin_iterate]);
