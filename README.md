@@ -68,7 +68,6 @@ And other uses I haven't thought of
 The program will have support with [UAV](https://github.com/hrlou/uav) (Universal Art Viewer) another project I've been working on when it's finished.
 
 ## Progress
-Currently the code is a massive mess and isn't much more than functional. I'm looking to go through and rewrite major parts in order to preserve a clean code base.
 - [x] Download Doujin
 - [x] Download Doujins Tags
 - [x] Name File Opon Tags
@@ -76,3 +75,5 @@ Currently the code is a massive mess and isn't much more than functional. I'm lo
 - [ ] Proper Web Searching
 - [ ] Option to compress to CBZ
 - [ ] Option to choose a directory
+
+
