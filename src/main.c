@@ -23,71 +23,71 @@ void progress_bar(float numerator, float denominator) {
     fprintf(stderr, "\033[0m] (%0.0f/%0.0f)", numerator, denominator);
 }
 
-char* directory_name(ntags nhentai) {
-    char*** tags_point[7] = {&nhentai.parodies, &nhentai.characters, &nhentai.tags, &nhentai.artists, &nhentai.groups, &nhentai.languages, &nhentai.categories};
+char* d_name(ntags h) {
+    char*** ptr[7] = {&h.parodies, &h.characters, &h.tags, &h.artists, &h.groups, &h.languages, &h.categories};
     size_t bufsize = 128;
-    char *directory = (char *) malloc(bufsize);
-    snprintf(directory, bufsize, "%s", nhentai.id);
+    char *d = (char *) malloc(bufsize);
+    snprintf(d, bufsize, "%s", h.id);
     if (NAMING != 0) {
-        size_t size = snprintf(directory, bufsize, "%s_", nhentai.id);
-        for (int x = 0; x < nhentai.sizes[(NAMING - 3)]; x++) {
-            if ((x + 1) >= nhentai.sizes[(NAMING - 3)]) {
-                size += snprintf(directory+size, bufsize, "%s", tags_point[(NAMING - 3)][0][x]);
+        size_t size = snprintf(d, bufsize, "%s_", h.id);
+        for (int x = 0; x < h.sizes[(NAMING - 3)]; x++) {
+            if ((x + 1) >= h.sizes[(NAMING - 3)]) {
+                size += snprintf(d+size, bufsize, "%s", ptr[(NAMING - 3)][0][x]);
             } else {
-                size += snprintf(directory+size, bufsize, "%s_", tags_point[(NAMING - 3)][0][x]);
+                size += snprintf(d+size, bufsize, "%s_", ptr[(NAMING - 3)][0][x]);
             }
             
             if (size >= bufsize) {
                 bufsize += 64;
-                directory = (char *) realloc(directory, bufsize);
+                d = (char *) realloc(d, bufsize);
             }
         }
     }
-    return directory;
+    return d;
 }
 
-void nhentai_download(ntags nhentai) {
-    printf("%s\n", nhentai.title);
-    char* directory = directory_name(nhentai);
-    char* textfile = (char *) malloc((sizeof(directory) + sizeof(nhentai.id) + 1) * sizeof(char*));
-    sprintf(textfile, "%s/%s.txt", directory, nhentai.id);
-    mkdir(directory, 0777);
+void nhentai_download(ntags h) {
+    printf("%s\n", h.title);
+    char* d = d_name(h);
+    char* textfile = (char *) malloc((sizeof(d) + sizeof(h.id) + 1) * sizeof(char*));
+    sprintf(textfile, "%s/%s.txt", d, h.id);
+    mkdir(d, 0777);
     FILE* output;
-    // output = fopen(textfile, "w");
-    output = stderr;
+    output = fopen(textfile, "w");
+    // output = stderr;
 
-    const char *tag_types[7] = {"Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories"};
-    char*** tags_point[7] = {&nhentai.parodies, &nhentai.characters, &nhentai.tags, &nhentai.artists, &nhentai.groups, &nhentai.languages, &nhentai.categories};
-    fprintf(output, "Title: %s\n", nhentai.title);
-    fprintf(output, "Gallery-Id: %s\n", nhentai.gallery_id);
+    const char *ident[7] = {"Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories"};
+    char*** ptr[7] = {&h.parodies, &h.characters, &h.tags, &h.artists, &h.groups, &h.languages, &h.categories};
+    fprintf(output, "Title: %s\n", h.title);
+    fprintf(output, "Gallery-Id: %s\n", h.gallery_id);
     // for (int type = 0; type < 7; type++) {
     for (int type = 2; type < 7; type++) {
-        fprintf(output, "%s: ", tag_types[type]);
-        for (int z = 0; z < nhentai.sizes[type]; z++) {
-            if ((z + 1) >= nhentai.sizes[type]) {
-                fprintf(output, "%s", tags_point[type][0][z]);
+        fprintf(output, "%s: ", ident[type]);
+        for (int z = 0; z < h.sizes[type]; z++) {
+            if ((z + 1) >= h.sizes[type]) {
+                fprintf(output, "%s", ptr[type][0][z]);
             } else {
-                fprintf(output, "%s, ", tags_point[type][0][z]);
+                fprintf(output, "%s, ", ptr[type][0][z]);
             }
         }
         fprintf(output, "\n");
     }
-    fprintf(output, "Pages: %d", nhentai.pages);
-    exit(0);
-    // fclose(output);
+    fprintf(output, "Pages: %d", h.pages);
+    // exit(0);
+    fclose(output);
 
-    int extension_iterate = 0;
-    char* extension_types[] = {"jpg", "png", "gif"};
+    int i = 0;
+    char* ext[] = {"jpg", "png", "gif"};
 
     pid_t pid;
-    for (int page_current = 1; page_current <= nhentai.pages; page_current++) {
+    for (int p = 1; p <= h.pages; p++) {
         pid = fork();
 
         if (pid == 0) {
-            while (download_gallery(nhentai.gallery_id, page_current, directory, extension_types[extension_iterate]) == 0) {
-                extension_iterate++;
-                if (extension_iterate > 2) {
-                    extension_iterate = 0;
+            while (download_gallery(h.gallery_id, p, d, ext[i]) == 0) {
+                i++;
+                if (i > 2) {
+                    i = 0;
                 }
             }
             exit(0);
@@ -110,7 +110,7 @@ void nhentai_download(ntags nhentai) {
         } else if (WIFEXITED(status)) {
             // printf("%d exited, status=%d\n", pid, WEXITSTATUS(status));
             progess++;
-            progress_bar(progess, nhentai.pages);
+            progress_bar(progess, h.pages);
         }
     }
 }
@@ -120,12 +120,10 @@ int main(int argc, char **argv) {
     // 165598   page 2 is a png (rest jpg); good for debugging
     // 295107   huge amount of tags
     // 267595   weird issue
-    for (int doujin_iterate = 1; doujin_iterate < argc; doujin_iterate++) {
-        printf("Downloading (%d/%d) %s : ", doujin_iterate, (argc - 1), argv[doujin_iterate]);
-        nhentai_download(nhentai_tags(argv[doujin_iterate]));
-        puts("Hello");
+    for (int i = 1; i < argc; i++) {
+        printf("Downloading (%d/%d) %s : ", i, (argc - 1), argv[i]);
+        nhentai_download(nhentai_tags(argv[i]));
         putchar('\n');
-        // printf("\nTest\n");
     }
     return 0;
 } 

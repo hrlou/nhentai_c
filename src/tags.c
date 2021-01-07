@@ -42,6 +42,7 @@ char* sanitise_tags(curl_memory d) {
         }
     }
     return_data[i] = '\0';
+    free(d.data);
     return return_data;
 }
 
@@ -52,10 +53,10 @@ ntags nhentai_tags(char* id) {
     // current_url = "https://nhentai.net/g/";
     tags.id = id;
     char* s = sanitise_tags(get_html(current_url));
+    // a pointer for freeing
+    char* f = s;
     char*** ptr[8] = {&tags.parodies, &tags.characters, &tags.tags, &tags.artists, &tags.groups, &tags.languages, &tags.categories};
     for (; *s; s++) {
-        // this just speeds up the process, not having to always do the if statements
-        for (; *s != 'P' && *s != 'm'; s++);
         if (*s == 'm' && *(s+5) == 'i' && *(s+15) == 'n' && *(s+21) == 'c') {
             s+=30;
             int i = 0;
@@ -104,7 +105,7 @@ ntags nhentai_tags(char* id) {
                             tags.pages = 10;
                         }
                         // I THINK THE ERRORS ARE CAUSED BY NULL TAGS
-                        /*if (tt == 7) {
+                        if (tt == 7) {
                             char* pg;
                             pg = (char*)malloc(i);
                             memcpy(pg, s, i);
@@ -116,7 +117,7 @@ ntags nhentai_tags(char* id) {
                             memcpy(ptr[tt][0][ti/2], s, i);
                             *(ptr[tt][0][ti/2]+i) = 0;
                             // puts(ptr[tt][0][ti/2]);
-                        }*/
+                        }
                         s+=i;
                     } else {
                         for (; *s != '>' && *s != '\n'; s++);
@@ -129,6 +130,6 @@ ntags nhentai_tags(char* id) {
             }
         }
     }
-    puts("Return");
+    free(f);
     return tags;
 }
