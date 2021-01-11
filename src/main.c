@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sys/wait.h>
 #include <unistd.h>
@@ -24,6 +25,7 @@ void progress_bar(float numerator, float denominator) {
 }
 
 char* d_name(ntags h) {
+    // I want to redo this
     char*** ptr[7] = {&h.parodies, &h.characters, &h.tags, &h.artists, &h.groups, &h.languages, &h.categories};
     size_t bufsize = 128;
     char *d = (char *) malloc(bufsize);
@@ -46,16 +48,24 @@ char* d_name(ntags h) {
     return d;
 }
 
-void nhentai_download(ntags h) {
+int nhentai_download(ntags h) {
     printf("%s\n", h.title);
     char* d = d_name(h);
+
+    if (strlen(d) >= 75) {
+        sprintf(d, "%.*s", 72, d_name(h));
+        fprintf(stderr, "\033[0;35m%s...: Name too long; resizing\033[0m\n", d);
+    }
+
     char* textfile = (char *) malloc((sizeof(d) + sizeof(h.id) + 1) * sizeof(char*));
     sprintf(textfile, "%s/%s.txt", d, h.id);
-    mkdir(d, 0777);
-    FILE* output;
-    output = fopen(textfile, "w");
-    // output = stderr;
 
+    if (mkdir(d, 0777) == -1) {
+        fprintf(stderr, "\033[0;31m%s: Directory exists; skipping\033[0m", d);
+        return -1;
+    }
+
+    FILE* output = fopen(textfile, "w");
     const char *ident[7] = {"Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories"};
     char*** ptr[7] = {&h.parodies, &h.characters, &h.tags, &h.artists, &h.groups, &h.languages, &h.categories};
     fprintf(output, "Title: %s\n", h.title);
@@ -73,7 +83,6 @@ void nhentai_download(ntags h) {
         fprintf(output, "\n");
     }
     fprintf(output, "Pages: %d", h.pages);
-    // exit(0);
     fclose(output);
 
     int i = 0;
@@ -92,7 +101,7 @@ void nhentai_download(ntags h) {
             }
             exit(0);
         } else if (pid > 0) {
-            /* the child has been forked and we are in the parent */
+            // the child has been forked and we are in the parent 
         } else {
             perror("FAILED TO FORK");
         }
@@ -113,6 +122,7 @@ void nhentai_download(ntags h) {
             progress_bar(progess, h.pages);
         }
     }
+    return 0;
 }
 
 int main(int argc, char **argv) {
@@ -120,6 +130,7 @@ int main(int argc, char **argv) {
     // 165598   page 2 is a png (rest jpg); good for debugging
     // 295107   huge amount of tags
     // 267595   weird issue
+    // 209949   corrupted
     for (int i = 1; i < argc; i++) {
         printf("Downloading (%d/%d) %s : ", i, (argc - 1), argv[i]);
         nhentai_download(nhentai_tags(argv[i]));

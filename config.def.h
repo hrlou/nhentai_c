@@ -15,7 +15,7 @@
 	10	Pages */
 // set NAMING to the corresponding number above
 // #define NAMING 6
-#define NAMING 0
+#define NAMING 6
 
 /*	[0;31m	Red
 	[0;32m	Green

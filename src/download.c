@@ -54,12 +54,15 @@ curl_memory get_html(char* input_url) {
 }
 
 int download_gallery(char* gallery_id, int index, char* directory, char* extension) {
+    // NEEDS TO INSPECTED
+
+
     // https://i.nhentai.net/galleries/ = 32
     // other stuff = 8
-    char* url = (char *) malloc((40 + sizeof(gallery_id)));
+    char* url = (char *) malloc((42 + sizeof(gallery_id)));
     sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", gallery_id, index, extension);
     char* file = (char *) malloc((sizeof(directory) + 30) * sizeof(char*));
-    snprintf(file, ((sizeof(directory) + 30) * sizeof(char*)),  "%s/%03d.%s", directory, index, extension);
+    snprintf(file, ((sizeof(directory) + 32) * sizeof(char*)),  "%s/%03d.%s", directory, index, extension);
 
     // our curl objects
     CURL* get_img;

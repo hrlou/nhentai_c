@@ -3,7 +3,7 @@
 
 #include "download.h"
 
-struct nhentai_tags {
+struct nhentai_comb {
     int pages;
     char* id;
     char* title;
@@ -18,7 +18,8 @@ struct nhentai_tags {
     char** categories;
 };
 
-typedef struct nhentai_tags ntags;
+
+typedef struct nhentai_comb ntags;
 
 // char* get_range(char data[], int start, int end);
 // char* sanitise_tags(char* buf, size_t size);
