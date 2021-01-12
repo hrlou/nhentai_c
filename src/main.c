@@ -31,13 +31,13 @@ char* d_name(ntags h) {
     size_t bufsize = 128;
     char *d = (char *) malloc(bufsize);
     snprintf(d, bufsize, "%s", h.id);
-    if (NAMING != 0) {
+    if (GLOBAL_NAMING_SCHEME != 0) {
         size_t size = snprintf(d, bufsize, "%s_", h.id);
-        for (int x = 0; x < h.sizes[(NAMING - 3)]; x++) {
-            if ((x + 1) >= h.sizes[(NAMING - 3)]) {
-                size += snprintf(d+size, bufsize, "%s", ptr[(NAMING - 3)][0][x]);
+        for (int x = 0; x < h.sizes[(GLOBAL_NAMING_SCHEME - 3)]; x++) {
+            if ((x + 1) >= h.sizes[(GLOBAL_NAMING_SCHEME - 3)]) {
+                size += snprintf(d+size, bufsize, "%s", ptr[(GLOBAL_NAMING_SCHEME - 3)][0][x]);
             } else {
-                size += snprintf(d+size, bufsize, "%s_", ptr[(NAMING - 3)][0][x]);
+                size += snprintf(d+size, bufsize, "%s_", ptr[(GLOBAL_NAMING_SCHEME - 3)][0][x]);
             }
             
             if (size >= bufsize) {
@@ -64,7 +64,7 @@ int nhentai_download(ntags h) {
     char* textfile = (char *) malloc((sizeof(d) + sizeof(h.id) + 1) * sizeof(char*));
     sprintf(textfile, "%s/%s.txt", d, h.id);
 
-    if (YES == 0) {
+    if (GLOBAL_CONFIRMATION_VALUE == 0) {
         DIR *od;
         struct dirent *dir;
         od = opendir(".");
@@ -169,13 +169,13 @@ int main(int argc, char **argv) {
         // printf("%s\n", argv[i]);
         if (*argv[i] == '-') {
             if (*(argv[i]+1) == 'y') {
-                YES = 1;
+                GLOBAL_CONFIRMATION_VALUE = 1;
             } else if (*(argv[i]+1) == 'n') {
                 i++;
                 if (atoi(argv[i]) <= 9 && atoi(argv[i]) >= 0) {
-                    NAMING = atoi(argv[i]);
+                    GLOBAL_NAMING_SCHEME = atoi(argv[i]);
                 } else {
-                    fprintf(stderr, "\033[31mInvalid Naming Scheme \033[1m%s\033[0m\033[31m; defaulting to \033[1m%d\033[0m\n", argv[i], NAMING);
+                    fprintf(stderr, "\033[31mInvalid Naming Scheme \033[1m%s\033[0m\033[31m; defaulting to \033[1m%d\033[0m\n", argv[i], GLOBAL_NAMING_SCHEME);
                 }
             }
         } else {

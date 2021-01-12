@@ -13,8 +13,8 @@
 	8	Languages
 	9	Categories */
 // set NAMING to the corresponding number above for default
-int NAMING = 0;
-int YES = 0;
+int GLOBAL_NAMING_SCHEME = 0;
+int GLOBAL_CONFIRMATION_VALUE = 0;
 
 /*	[0;31m	Red
 	[0;32m	Green
