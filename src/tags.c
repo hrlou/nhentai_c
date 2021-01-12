@@ -130,7 +130,11 @@ ntags nhentai_tags(char* id) {
     snprintf(current_url, 36, "https://nhentai.net/g/%s/", id);
     char* s = sanitise_tags(get_html(current_url));
     nhentai_essential(s, &h);
-    nhentai_ident(s, &h);
+    if (h.gallery_id == NULL) {
+        fprintf(stderr, "\033[0;31mInvalid ID: \033[1m%s\033[0m\n", h.id);
+    } else {
+        nhentai_ident(s, &h);
+    }
     free(s);
     return h;
 }

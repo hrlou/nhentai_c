@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 #include <sys/wait.h>
 #include <unistd.h>
@@ -49,6 +50,9 @@ char* d_name(ntags h) {
 }
 
 int nhentai_download(ntags h) {
+    if (h.gallery_id == NULL) {
+        return -1;
+    }
     printf("%s\n", h.title);
     char* d = d_name(h);
 
@@ -60,10 +64,36 @@ int nhentai_download(ntags h) {
     char* textfile = (char *) malloc((sizeof(d) + sizeof(h.id) + 1) * sizeof(char*));
     sprintf(textfile, "%s/%s.txt", d, h.id);
 
-    if (mkdir(d, 0777) == -1) {
+    if (YES == 0) {
+        DIR *od;
+        struct dirent *dir;
+        od = opendir(".");
+        while ((dir = readdir(od)) != NULL) {
+            char* check = strstr(dir->d_name, h.id);
+            if (check != NULL) {
+                char answer = 'a';
+                while (answer != 'y' && answer != 'n') {
+                    fflush(stderr);
+                    fprintf(stderr, "File %s found, would you like to continue [y/n]: ", dir->d_name);
+                    fflush(stdin);
+                    scanf(" %c", &answer);
+                    if (answer == 'y') {
+                        break;
+                    } else if (answer == 'n') {
+                        return -1;
+                    }
+                }
+            }
+        }
+        closedir(od);
+    }
+
+    mkdir(d, 0777);
+
+    /*if (mkdir(d, 0777) == -1) {
         fprintf(stderr, "\033[0;31m%s: Directory exists; skipping\033[0m", d);
         return -1;
-    }
+    }*/
 
     FILE* output = fopen(textfile, "w");
     const char *ident[7] = {"Parodies", "Characters", "Tags", "Artists", "Groups", "Languages", "Categories"};
@@ -122,6 +152,7 @@ int nhentai_download(ntags h) {
             progress_bar(progess, h.pages);
         }
     }
+    putchar('\n');
     return 0;
 }
 
@@ -131,10 +162,34 @@ int main(int argc, char **argv) {
     // 295107   huge amount of tags
     // 267595   weird issue
     // 209949   corrupted
+    // option getter
+    int doujin[argc];
+    int dc = 0;
     for (int i = 1; i < argc; i++) {
-        printf("Downloading (%d/%d) %s : ", i, (argc - 1), argv[i]);
-        nhentai_download(nhentai_tags(argv[i]));
-        putchar('\n');
+        // printf("%s\n", argv[i]);
+        if (*argv[i] == '-') {
+            if (*(argv[i]+1) == 'y') {
+                YES = 1;
+            } else if (*(argv[i]+1) == 'n') {
+                i++;
+                if (atoi(argv[i]) <= 9 && atoi(argv[i]) >= 0) {
+                    NAMING = atoi(argv[i]);
+                } else {
+                    fprintf(stderr, "\033[31mInvalid Naming Scheme \033[1m%s\033[0m\033[31m; defaulting to \033[1m%d\033[0m\n", argv[i], NAMING);
+                }
+            }
+        } else {
+            if (*argv[i]-48 >= 0 && *argv[i]-48 <= 9) {
+                doujin[dc] = i;
+                dc++;
+            }
+            // printf("%d\n", *argv[i]);
+        }
+    }
+
+    for (int i = 0; i < dc; i++) {
+        printf("Downloading (%d/%d) %s : ", (i + 1), dc, argv[doujin[i]]);
+        nhentai_download(nhentai_tags(argv[doujin[i]]));
     }
     return 0;
 } 

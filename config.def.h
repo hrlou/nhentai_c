@@ -11,11 +11,10 @@
 	6	Artists
 	7	Groups
 	8	Languages
-	9	Categories
-	10	Pages */
-// set NAMING to the corresponding number above
-// #define NAMING 6
-#define NAMING 6
+	9	Categories */
+// set NAMING to the corresponding number above for default
+int NAMING = 0;
+int YES = 0;
 
 /*	[0;31m	Red
 	[0;32m	Green
