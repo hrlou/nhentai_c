@@ -1,6 +1,8 @@
 # nhentai
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/hrlou/nhentai_c.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/hrlou/nhentai_c/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/hrlou/nhentai_c.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/hrlou/nhentai_c/context:cpp)
+![Lines: C/C++](https://badgen.net/lgtm/lines/g/hrlou/nhentai_c/c)
+![Languages](https://badgen.net/lgtm/langs/g/hrlou/nhentai_c)
 
 ## dependencies
 In order to compile you need a version of curl that supports ssl, on Debian the package I used to provide this is.
