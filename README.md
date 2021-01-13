@@ -1,36 +1,47 @@
-# nhentai
+# nHentai
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/hrlou/nhentai_c.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/hrlou/nhentai_c/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/hrlou/nhentai_c.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/hrlou/nhentai_c/context:cpp)
 ![Lines: C/C++](https://badgen.net/lgtm/lines/g/hrlou/nhentai_c/c)
 ![Languages](https://badgen.net/lgtm/langs/g/hrlou/nhentai_c)
+![Code Style](https://badgen.net/badge/code%20style/K&R/f2a)
+![Compiler Used](https://badgen.net/badge/GCC/10.2.1/orange)
 
-## dependencies
-In order to compile you need a version of curl that supports ssl, on Debian the package I used to provide this is.
+## Purpose
+**A program written entirely in C for downloading doujins from "https://nhentai.net"**
+
+## Dependencies
+In order to compile you need a version of the curl libraries supporting SSL.
+On Debian based distributions simply install 
 ```
 libcurl4-openssl-dev
 ```
-I assume that if you use a different distro you know how to search the repositories for any dependencies.
+Or you can find the source/binaries ![here](https://curl.se/download.html)
 
-## installation
-I personally use GCC 10.2. I've had issues compiling the current version with clang 10. I am currently working on eliminating the global variables in the program which should ensure compatibility on all modern versions of GCC and Clang. In the meantime, if you have any issues building please update your compiler.
+## Installation
+On Linux building should be as simple as.
 ```
 git clone https://github.com/hrlou/nhentai_c.git
 cd nhentai_c
 sudo make install
 ```
+I personally use GCC 10 as my compiler, but I've also tested with clang and tcc which both seem to work fine.
 
-## usage
-Usage is extremely simple.
+I'm not very experienced when it comes to development for Windows and was unable to produce a functional binary.
+Contribution to make this possible would be greatly appreciated.
+
+## Usage
+The program will download any specified doujins by their id to their own directories.
 ```
-nhentai id1 id2 id3....
+nhentai 177013 196718..
 ```
-The program will download your specified Doujins to it's own directory
-It also generate a tags file named *DOUJIN-ID*.txt in said directory which contains all the tags and is formatted like so: 
+The program should theoretically support an unlimited amount of doujins at once, but I have had errors downloading over 50.
+Your mileage may vary.
+It also generate a tags file named *DOUJIN-ID*.txt inside of said directory containing all the tags, it looks like this.
 ```
 Title: title
 Gallery-Id: id
 Parodies: parody, parody
-Characters: person, person
+Characters: character, character
 Tags: tag, tag, tag
 Artists: artist, artist
 Groups: group
@@ -39,41 +50,44 @@ Categories: category
 Pages: number
 ```
 
-## configuration
+## Configuration
 To edit the configuration, open "config.def.h".  
 Instructions are included in it.
 
-## organisation
-**If you don't plan to organise your Doujins in a unified location, ignore this.**  
-I personally use this system for organisation:
+## Scripts
+All scripts will eventually be rewritten as C functions and called by command line arguments.
+### nhentai_cbz
+Compresses all doujins in a directory to cbz files for your comic reader.
+### nhentai_search
+A prototype for the search function.
+Takes a query and returns every doujin matching it.
+The query is the same as what you'd input into the website.
+For example
 ```
-{artist,charecter,etc}/doujin
+nhentai_search "yuri english"
 ```
-As long as all your Doujins are housed in a single directory, you should have no problem running the scripts. 
-
-## scripts
-The two scripts are to help you organise and share your doujin database.  
 ### nhentai_rename
-The "nhentai_rename" script is run in a directory that contains Doujins.  
-It renames everything in that directory to *DOUJIN-ID*_*YOUR-OPTION*.   
-It simply reads the text file the program generates to determine tags.
+Renames all doujins in a directory with the option provided.
 ### nhentai_gen
-The "nhentai_gen" script allows you to generate a shell script that when run will download your entire library and organize it as you have.   
-The purpose of this is to backup your library.   
-You might also think about using it to:
-- redownload on another device
-- share your library online
-- use diff to compare libraries
-  
-And other uses I haven't thought of
+The "nhentai_gen" script allows you to generate a shell script that downloads your entire library, copying the directory structure.   
 
-## Progress
-- [x] Download Doujin
-- [x] Download Doujins Tags
-- [x] Name File Opon Tags
-- [ ] Proper Exist Testing
-- [ ] Proper Web Searching
-- [ ] Option to compress to CBZ
-- [ ] Option to choose a directory
+## Functionality
+The program goes through 6 steps in order to download a doujin.
+1. Download the web page of the given id, "https://nhentai/g/*id*/"
+2. Sanitise that data for our parser
+3. Manually parse the data getting our tags
+4. Store those tags in our struct defined as type ntags
+5. Use the newly found gallery id to fork download all the images in the doujin
+6. Dump the tags to a file
 
-
+## Roadmap & Progress
+- [x] download doujin
+- [x] download doujins tags
+- [x] name file upon tags
+- [x] proper exist testing (needs improvement)
+- [x] command line arguments (needs improvement)
+- [ ] cookies
+- [ ] proper searching
+- [ ] proper compression for 
+- [ ] option to choose a directory
+- [ ] elimination of all heap memory, mallocs and pointers (will require a complete redesign)

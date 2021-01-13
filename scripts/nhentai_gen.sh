@@ -14,5 +14,4 @@ find . -type d -print0 | while IFS= read -r -d '' dir; do
     fi
 done
 
-
 chmod +x $DB_FILE
