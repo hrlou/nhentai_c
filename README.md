@@ -1,10 +1,21 @@
-# nHentai
+<!-- https://onlineasciitools.com/convert-text-to-ascii-art -->
+                     888                        888             d8b 
+                     888                        888             Y8P 
+                     888                        888                 
+            88888b.  88888b.   .d88b.  88888b.  888888  8888b.  888 
+            888 "88b 888 "88b d8P  Y8b 888 "88b 888        "88b 888 
+            888  888 888  888 88888888 888  888 888    .d888888 888 
+            888  888 888  888 Y8b.     888  888 Y88b.  888  888 888 
+            888  888 888  888  "Y8888  888  888  "Y888 "Y888888 888 
+          
+          
+          
+                                                        
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/hrlou/nhentai_c.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/hrlou/nhentai_c/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/hrlou/nhentai_c.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/hrlou/nhentai_c/context:cpp)
 ![Lines: C/C++](https://badgen.net/lgtm/lines/g/hrlou/nhentai_c/c)
-![Languages](https://badgen.net/lgtm/langs/g/hrlou/nhentai_c)
+![Languages](https://img.shields.io/badge/language-C-%23A8B9CC?logo=c)
 ![Code Style](https://badgen.net/badge/code%20style/K&R/f2a)
-![Compiler Used](https://badgen.net/badge/GCC/10.2.1/orange)
 
 ## Purpose
 **A program written entirely in C for downloading doujins from "https://nhentai.net"**
