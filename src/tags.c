@@ -106,7 +106,7 @@ void nhentai_ident(char* o, ntags* tags) {
                 int i = 0;
                 for (; *(s+i) != '>' && *(s+i) != '\n'; i++);
                 if (tags->sizes[tt] > 0) {
-                    ptr[tt][0][ti/2] = (char*)malloc(i);
+                    ptr[tt][0][ti/2] = (char*)malloc(i+1);
                     memcpy(ptr[tt][0][ti/2], s, i);
                     *(ptr[tt][0][ti/2]+i) = 0;
                 }

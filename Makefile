@@ -24,11 +24,11 @@ install: nhentai
 	cp -f nhentai $(PREFIX)/bin
 	cp -f scripts/nhentai_gen.sh $(PREFIX)/bin/nhentai_gen
 	cp -f scripts/nhentai_search.sh $(PREFIX)/bin/nhentai_search
-	cp -f scripts/nhentai_cbt.sh $(PREFIX)/bin/nhentai_cbt
+	cp -f scripts/nhentai_cbz.sh $(PREFIX)/bin/nhentai_cbz
 	chmod +x $(PREFIX)/bin/nhentai
 	chmod +x $(PREFIX)/bin/nhentai_gen
 	chmod +x $(PREFIX)/bin/nhentai_search
-	chmod +x $(PREFIX)/bin/nhentai_cbt
+	chmod +x $(PREFIX)/bin/nhentai_cbz
 
 uninstall:
 	rm -f $(PREFIX)/bin/nhentai*

@@ -189,7 +189,8 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < dc; i++) {
         printf("Downloading (%d/%d) %s : ", (i + 1), dc, argv[doujin[i]]);
-        nhentai_download(nhentai_tags(argv[doujin[i]]));
+        ntags tags = nhentai_tags(argv[doujin[i]]);
+        nhentai_download(tags);
     }
     return 0;
 } 

@@ -21,9 +21,8 @@ struct nhentai_comb {
 
 typedef struct nhentai_comb ntags;
 
-// char* get_range(char data[], int start, int end);
-// char* sanitise_tags(char* buf, size_t size);
-// ntags parse_tags(curl_memory data);
+void nhentai_essential(char* s, ntags* tags);
+void nhentai_ident(char* o, ntags* tags);
 ntags nhentai_tags(char* id);
 
 #endif // PARSE_H
