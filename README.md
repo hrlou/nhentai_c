@@ -27,8 +27,8 @@ On Debian based distributions simply install
 libcurl4-openssl-dev
 libzip-dev
 ```
-![curl source/binaries](https://curl.se/download.html)
-![libzip source/binaries](https://libzip.org/download/)
+![curl source/binaries](https://curl.se/download.html)  
+![libzip source/binaries](https://libzip.org/download/)  
 
 
 ## Installation
@@ -95,13 +95,6 @@ The program goes through 6 steps in order to download a doujin.
 6. Dump the tags to a file
 
 ## Roadmap & Progress
-- [x] download doujin
-- [x] download doujins tags
-- [x] name file upon tags
-- [x] proper exist testing (needs improvement)
-- [x] command line arguments (needs improvement)
 - [ ] cookies
 - [ ] proper searching
-- [ ] proper compression for 
 - [ ] option to choose a directory
-- [ ] elimination of all heap memory, mallocs and pointers (will require a complete redesign)
