@@ -25,8 +25,11 @@ In order to compile you need a version of the curl libraries supporting SSL.
 On Debian based distributions simply install 
 ```
 libcurl4-openssl-dev
+libzip-dev
 ```
-Or you can find the source/binaries ![here](https://curl.se/download.html)
+![curl source/binaries](https://curl.se/download.html)
+![libzip source/binaries](https://libzip.org/download/)
+
 
 ## Installation
 On Linux building should be as simple as.

@@ -1,101 +1,84 @@
-#include <curl/curl.h>
 #include <stdlib.h>
 #include <string.h>
+#include <curl/curl.h>
 
 #include "download.h"
-#include "tags.h"
 
 static inline size_t exist_test(const char *name) {
     FILE *file;
-    // if readible then return 1
+    /* if readible then return 1 */
     if ((file = fopen(name, "r")) != NULL) {
         fclose(file);
         return 1;
     }
-    // if file is NULL it won't open, no memory leak
+    /* if file is NULL it won't open, no memory leak */
     return 0;
 }
 
 static size_t write_callback(char* buf, size_t size, size_t nmemb, void *pass) {
-    size_t realsize = size*nmemb;
-    // interpret the typless pass
-    curl_memory *mem = (curl_memory *)pass;
-
-    char* ptr = realloc(mem->data, mem->size + realsize + 1);
+    /* interpret the typless pass */
+    curl_T* mem = (curl_T*)pass;
+    char* ptr = realloc(mem->data, mem->size + size*nmemb + 1);
     if (ptr == NULL) {
         return 0;
     }
     mem->data = ptr;
-
-    // copy buf (which contains the data in the curl buffer) into the newly re-allocated pointer
-    memcpy(&(mem->data[mem->size]), buf, realsize);
-    // iterate the size by the number of bytes handled
-    mem->size += realsize;
+    /* copy buf (which contains the data in the curl buffer) into the newly re-allocated pointer */
+    memcpy(&(mem->data[mem->size]), buf, size*nmemb);
+    /* increase the size by the number of bytes handled */
+    mem->size += size*nmemb;
     mem->data[mem->size] = 0;
-    return realsize;
+    return size*nmemb;
 }
 
-curl_memory get_html(char* input_url) {
-    curl_memory html;
-    html.size = 0;
-    // this fixes realloc issues
-    html.data = (char*) malloc(1);
-    CURL* curl_get_html;
-    // initialise
-    curl_get_html = curl_easy_init();
-    curl_easy_setopt(curl_get_html, CURLOPT_URL, input_url);
-    // send the html data to the call back function
+curl_T* download_html(char* url) {
+    curl_T* mem = calloc(1, sizeof(struct curl));
+    mem->size = 0;
+    mem->data = calloc(1, sizeof(char));
+    CURL* curl_get_html = curl_easy_init();
+    curl_easy_setopt(curl_get_html, CURLOPT_URL, url);
+    /* send the data to the call back function */
     curl_easy_setopt(curl_get_html, CURLOPT_WRITEFUNCTION, &write_callback);
-    // give the callback function the file descriptor 
-    curl_easy_setopt(curl_get_html, CURLOPT_WRITEDATA, (void *)&html);
+    /* give the callback function mem struct */
+    curl_easy_setopt(curl_get_html, CURLOPT_WRITEDATA, (void *)mem);
+    /* fail if we get a 404 or any other error, size will be 0 to identify */
+    curl_easy_setopt(curl_get_html, CURLOPT_FAILONERROR, 1);
     curl_easy_perform(curl_get_html);
     curl_easy_cleanup(curl_get_html);
-    return html;
+    return mem;
 }
 
-int download_gallery(char* gallery_id, int index, char* directory, char* extension) {
-    // NEEDS TO INSPECTED
+int download_file(char* url, char* output) {
+    /* our curl objects */
+    CURL* get_file;
+    CURLcode get_file_result;
+    FILE* file_output;
 
-
-    // https://i.nhentai.net/galleries/ = 32
-    // other stuff = 8
-    char* url = (char *) malloc((42 + sizeof(gallery_id)));
-    sprintf(url, "https://i.nhentai.net/galleries/%s/%d.%s", gallery_id, index, extension);
-    char* file = (char *) malloc((sizeof(directory) + 30) * sizeof(char*));
-    snprintf(file, ((sizeof(directory) + 30) * sizeof(char*)),  "%s/%03d.%s", directory, index, extension);
-
-    // our curl objects
-    CURL* get_img;
-    CURLcode get_img_result;
-    FILE *img_output;
-
-    // printf("%s\n", url);
-    // only download if the file doesn't exist
-    if (exist_test(file) == 0) {
-        get_img = curl_easy_init();
-        img_output = fopen(file, "w");
-        if (img_output == NULL) {
+    /* only download if the file doesn't exist */
+    if (exist_test(output) == 0) {
+        get_file = curl_easy_init();
+        file_output = fopen(output, "w");
+        if (file_output == NULL) {
             return 0;
         }
-        // set url
-        curl_easy_setopt(get_img, CURLOPT_URL, url);
-        free(url);
-        curl_easy_setopt(get_img, CURLOPT_WRITEFUNCTION, NULL);
-        // fail if we get an error
-        curl_easy_setopt(get_img, CURLOPT_FAILONERROR, 1);
-        // write data to the image file
-        curl_easy_setopt(get_img, CURLOPT_WRITEDATA, img_output);
-        get_img_result = curl_easy_perform(get_img);
+        /* set url */
+        curl_easy_setopt(get_file, CURLOPT_URL, url);
+        curl_easy_setopt(get_file, CURLOPT_WRITEFUNCTION, NULL);
+        /* fail if we get an error */
+        curl_easy_setopt(get_file, CURLOPT_FAILONERROR, 1);
+        /* write data to the image file */
+        curl_easy_setopt(get_file, CURLOPT_WRITEDATA, file_output);
+        get_file_result = curl_easy_perform(get_file);
 
-        // page download fail
-        if (get_img_result) {
-            fclose(img_output);
-            remove(file);
-            curl_easy_cleanup(get_img);
+        /* file download fail */
+        if (get_file_result) {
+            fclose(file_output);
+            remove(output);
+            curl_easy_cleanup(get_file);
             return 0;
         }
-        curl_easy_cleanup(get_img);
-        fclose(img_output);
+        curl_easy_cleanup(get_file);
+        fclose(file_output);
     }
     return 1; 
 }
