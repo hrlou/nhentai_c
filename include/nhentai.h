@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-#include "download.h"
+#include "curl.h"
 #include "ntags.h"
 
 typedef struct nhentai {

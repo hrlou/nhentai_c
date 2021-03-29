@@ -10,7 +10,13 @@
     feel free to use whatever scheme you like
 */
 #define NAMING "$id$_$artists$"
+#define MAX_DIRECTORY_LENGTH 128
 
+/* general options 
+    1 = true
+    0 = false */
+#define CREATE_CBZ 1
+#define DELETE_DIR 1
 
 /*  [0;31m  Red
     [0;32m  Green

@@ -1,7 +1,7 @@
 #ifndef NTAGS_H
 #define NTAGS_H
 
-#include "download.h"
+#include "curl.h"
 
 typedef struct ntags {
     int sizes[7];

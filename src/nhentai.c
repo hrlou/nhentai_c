@@ -5,7 +5,7 @@
 
 #include "nhentai.h"
 #include "ntags.h"
-#include "download.h"
+#include "curl.h"
 #include "output.h"
 #include "cbz.h"
 
@@ -48,7 +48,7 @@ void nhentai_sanitise(curl_T* mem) {
 }
 
 void nhentai_html(nhentai_T* nhentai) {
-    nhentai->mem = download_html(nhentai->url);
+    nhentai->mem = curl_download_html(nhentai->url);
     if (nhentai->mem->size == 0) {
         fputs("failure downloading page; skipping\n", stderr);
         return;
@@ -67,6 +67,7 @@ void nhentai_cbz(nhentai_T* nhentai) {
     strcpy(cbz, nhentai->dir);
     strcat(cbz, ".cbz");
     zip_directory(nhentai->dir, cbz);
+    return free(cbz);
 }
 
 void nhentai_data(nhentai_T* nhentai) {

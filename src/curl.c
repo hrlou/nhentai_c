@@ -2,7 +2,7 @@
 #include <string.h>
 #include <curl/curl.h>
 
-#include "download.h"
+#include "curl.h"
 
 static inline size_t exist_test(const char *name) {
     FILE *file;
@@ -31,7 +31,7 @@ static size_t write_callback(char* buf, size_t size, size_t nmemb, void *pass) {
     return size*nmemb;
 }
 
-curl_T* download_html(char* url) {
+curl_T* curl_download_html(char* url) {
     curl_T* mem = calloc(1, sizeof(struct curl));
     mem->size = 0;
     mem->data = calloc(1, sizeof(char));
@@ -48,14 +48,14 @@ curl_T* download_html(char* url) {
     return mem;
 }
 
-int download_file(char* url, char* output) {
+int curl_download_file(char* url, char* output) {
     /* our curl objects */
     CURL* get_file;
     CURLcode get_file_result;
     FILE* file_output;
 
     /* only download if the file doesn't exist */
-    if (exist_test(output) == 0) {
+    if (!exist_test(output)) {
         get_file = curl_easy_init();
         file_output = fopen(output, "w");
         if (file_output == NULL) {
@@ -81,4 +81,17 @@ int download_file(char* url, char* output) {
         fclose(file_output);
     }
     return 1; 
+}
+
+int curl_error_test(const char* url) {
+    CURL* exist = curl_easy_init();
+    curl_easy_setopt(exist, CURLOPT_URL, url);
+    curl_easy_setopt(exist, CURLOPT_NOBODY, 1L);
+    curl_easy_setopt(exist, CURLOPT_FAILONERROR, 1);
+    CURLcode exist_result = curl_easy_perform(exist);
+    if (exist_result) {
+        curl_easy_cleanup(exist);
+        return 0;
+    }
+    return 1;
 }

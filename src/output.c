@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <string.h>
 
@@ -11,19 +12,19 @@
 #include "ntags.h"
 #include "../config.def.h"
 
-static int _download_page(nhentai_T* nhentai, int index, int extension) {
-    const char* ext[] = {"jpg", "png", "gif"};
-    char* url = calloc((42 + strlen(nhentai->tags->gallery_id)), sizeof(char));
-    snprintf(url, (42 + strlen(nhentai->tags->gallery_id)), "https://i.nhentai.net/galleries/%s/%d.%s", nhentai->tags->gallery_id, index, ext[extension]);
-    char* file = calloc((30 + strlen(nhentai->dir)), sizeof(char));
-    snprintf(file, (30 + strlen(nhentai->dir)),  "%s/%03d.%s", nhentai->dir, index, ext[extension]);
-    int value = download_file(url, file);
-    free(url);
-    free(file);
-    return value;
+static int unlink_cb(const char* fpath, const struct stat* sb, int typeflag, struct FTW* ftwbuf) {
+    int rv = remove(fpath);
+    if (rv) {
+        perror(fpath);
+    }
+    return rv;
 }
 
-static char* _make_vlist(char** list, size_t list_size) {
+int remove_recursive(char* path) {
+    return nftw(path, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
+}
+
+static char* visual_list(char** list, size_t list_size) {
     if (list_size == 0) {
         return NULL;
     }
@@ -38,7 +39,7 @@ static char* _make_vlist(char** list, size_t list_size) {
     return vlist;
 }
 
-static int _arrncmp(const char* str, const char** arr, int length) {
+static int arrncmp(const char* str, const char** arr, int length) {
     for (size_t i = 0; arr[i]; i++) {
         if (strncmp(str, arr[i], length) == 0) {
             return i + 1;
@@ -60,8 +61,17 @@ static void progress_bar(float numerator, float denominator) {
     fprintf(stderr, "\033[0m] (%0.0f/%0.0f)", numerator, denominator);
 }
 
-
-#define MAX_DIRECTORY_LENGTH 128
+static int download_page(nhentai_T* nhentai, int index, int extension) {
+    const char* ext[] = {"jpg", "png", "gif"};
+    char* url = calloc((42 + strlen(nhentai->tags->gallery_id)), sizeof(char));
+    char* file = calloc((30 + strlen(nhentai->dir)), sizeof(char));
+    snprintf(url, (42 + strlen(nhentai->tags->gallery_id)), "https://i.nhentai.net/galleries/%s/%d.%s", nhentai->tags->gallery_id, index, ext[extension]);
+    snprintf(file, (30 + strlen(nhentai->dir)),  "%s/%03d.%s", nhentai->dir, index, ext[extension]);
+    int value = curl_download_file(url, file);
+    free(url);
+    free(file);
+    return value;
+}
 
 void directory_gen(nhentai_T* nhentai) { 
     const char* variables[] = {"id", "title", "gallery", "parodies", "characters", "tags", "artists", "groups", "language", NULL};
@@ -74,7 +84,7 @@ void directory_gen(nhentai_T* nhentai) {
     for (; *name; name++) {
         if (*name == '$') {
             name++;
-            int r = _arrncmp(name, variables, (strchr(name, '$') - name));
+            int r = arrncmp(name, variables, (strchr(name, '$') - name));
             if (r != 0) {
                 r -= 1;
                 char* tmp = NULL;
@@ -85,7 +95,7 @@ void directory_gen(nhentai_T* nhentai) {
                         case 2: tmp = nhentai->tags->gallery_id; break;
                     }
                 } else {
-                    tmp = _make_vlist(*ptr[r - 3], nhentai->tags->sizes[r - 3]);
+                    tmp = visual_list(*ptr[r - 3], nhentai->tags->sizes[r - 3]);
                 }
                 if (tmp != NULL) {
                     strncat(nhentai->dir, tmp, (MAX_DIRECTORY_LENGTH - size));
@@ -116,7 +126,7 @@ void download_gallery(nhentai_T* nhentai) {
     for (int p = 1, i = 0; p <= nhentai->tags->pages; p++) {
         pid = fork();
         if (pid == 0) {
-            while (_download_page(nhentai, p, i) == 0) {
+            while (!download_page(nhentai, p, i)) {
                 i++;
                 if (i > 2) {
                     i = 0;
@@ -130,8 +140,7 @@ void download_gallery(nhentai_T* nhentai) {
         }
     }
 
-    int status;
-    int progess = 0;
+    int status, progess = 0;
 
     while ((pid = waitpid(-1, &status, 0))) {
         if (pid == -1) {
