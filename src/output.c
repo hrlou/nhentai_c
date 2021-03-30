@@ -33,7 +33,7 @@ static char* visual_list(char** list, size_t list_size) {
     snprintf(vlist, length, "%s_", list[0]);
     for (size_t i = 1; i < list_size; i++) {
         vlist = realloc(vlist, (2 + length + strlen(list[i])) * sizeof(char));
-        length += snprintf(vlist+length-1, (2 + length + strlen(list[i])), "%s_", list[i]);
+        length += snprintf(vlist+length-1, (2 + length + strlen(list[i])), "%s_", list[i]); // lgtm [cpp/overflowing-snprintf]
     }
     vlist[strlen(vlist) - 1] = '\0';
     return vlist;
