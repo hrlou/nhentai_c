@@ -1,9 +1,9 @@
-#ifndef MAIN_H
-#define MAIN_H
+#pragma once
 
 #include "nhentai.h"
 
-int main(int argc, char *argv[]);
-void nhentai_front(nhentai_T** nhentai, int count);
+typedef struct options {
+    int val;
+} options_T;
 
-#endif /* MAIN_H */
+int main(int argc, char *argv[]);

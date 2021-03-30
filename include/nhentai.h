@@ -1,5 +1,4 @@
-#ifndef NHENTAI_H
-#define NHENTAI_H
+#pragma once
 
 #include <stdlib.h>
 
@@ -20,5 +19,4 @@ void nhentai_tags(nhentai_T* nhentai);
 void nhentai_cbz(nhentai_T* nhentai);
 void nhentai_data(nhentai_T* nhentai);
 void nhentai_download(nhentai_T* nhentai);
-
-#endif /* NHENTAI_H */
+void* nhentai_search(const char* term);

@@ -1,5 +1,4 @@
-#ifndef CURL_H
-#define CURL_H
+#pragma once
 
 #include <stdlib.h>
 
@@ -11,5 +10,3 @@ typedef struct curl {
 curl_T* curl_download_html(char* url);
 int curl_download_file(char* url, char* file);
 int curl_error_test(const char* url);
-
-#endif /* CURL_H */

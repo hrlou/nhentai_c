@@ -24,21 +24,6 @@ int remove_recursive(char* path) {
     return nftw(path, unlink_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
 
-static char* visual_list(char** list, size_t list_size) {
-    if (list_size == 0) {
-        return NULL;
-    }
-    size_t length = (2 + strlen(list[0]));
-    char* vlist = calloc(length, sizeof(char));
-    snprintf(vlist, length, "%s_", list[0]);
-    for (size_t i = 1; i < list_size; i++) {
-        vlist = realloc(vlist, (2 + length + strlen(list[i])) * sizeof(char));
-        length += snprintf(vlist+length-1, (2 + length + strlen(list[i])), "%s_", list[i]); // lgtm [cpp/overflowing-snprintf]
-    }
-    vlist[strlen(vlist) - 1] = '\0';
-    return vlist;
-}
-
 static int arrncmp(const char* str, const char** arr, int length) {
     for (size_t i = 0; arr[i]; i++) {
         if (strncmp(str, arr[i], length) == 0) {
@@ -73,18 +58,32 @@ static int download_page(nhentai_T* nhentai, int index, int extension) {
     return value;
 }
 
-void directory_gen(nhentai_T* nhentai) { 
+static char* visual_list(char** list, size_t list_size) {
+    if (list_size == 0 || list == NULL) {
+        return NULL;
+    }
+    char* vlist = calloc(2 + strlen(list[0]), sizeof(char));
+    snprintf(vlist, (2 + strlen(list[0])), "%s_", list[0]);
+
+    for (size_t i = 1; i < list_size; i++) {
+        vlist = realloc(vlist, (2 + strlen(vlist) + strlen(list[i])) * sizeof(char));
+        snprintf(vlist+strlen(vlist), (strlen(list[i]) + 2), "%s_", list[i]);
+    }
+    vlist[strlen(vlist) - 1] = '\0';
+    return vlist;
+}
+
+void directory_gen(const char* fmt, nhentai_T* nhentai) { 
     const char* variables[] = {"id", "title", "gallery", "parodies", "characters", "tags", "artists", "groups", "language", NULL};
     char*** ptr[8] = {&nhentai->tags->parodies, &nhentai->tags->characters, &nhentai->tags->tags, &nhentai->tags->artists, &nhentai->tags->groups, &nhentai->tags->languages, &nhentai->tags->categories};
 
     nhentai->dir = calloc(MAX_DIRECTORY_LENGTH + 8, sizeof(char));
-    char* name = NAMING;
     size_t size = 0;
 
-    for (; *name; name++) {
-        if (*name == '$') {
-            name++;
-            int r = arrncmp(name, variables, (strchr(name, '$') - name));
+    for (; *fmt; fmt++) {
+        if (*fmt == '$') {
+            fmt++;
+            int r = arrncmp(fmt, variables, (strchr(fmt, '$') - fmt));
             if (r != 0) {
                 r -= 1;
                 char* tmp = NULL;
@@ -100,19 +99,22 @@ void directory_gen(nhentai_T* nhentai) {
                 if (tmp != NULL) {
                     strncat(nhentai->dir, tmp, (MAX_DIRECTORY_LENGTH - size));
                     size += (strlen(tmp) > (MAX_DIRECTORY_LENGTH - size)) ? (MAX_DIRECTORY_LENGTH - size) : strlen(tmp);
-                    name = strchr(name, '$');
+                    fmt = strchr(fmt, '$');
                 }
             }
         } else {
             if (size < MAX_DIRECTORY_LENGTH) {
-                nhentai->dir[size++] = *name;
+                nhentai->dir[size++] = *fmt;
             }
         }
     }
 }
 
 void download_gallery(nhentai_T* nhentai) {
-    directory_gen(nhentai);
+    if (nhentai->dir == NULL) {
+        directory_gen(DEFAULT_NAMING, nhentai);
+    }
+
     mkdir(nhentai->dir, 0755);
     char* textfile = calloc((20 + strlen(nhentai->dir)), sizeof(char));
     snprintf(textfile, (20 + strlen(nhentai->dir)), "%s/%s.txt", nhentai->dir, nhentai->id);

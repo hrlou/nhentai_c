@@ -1,5 +1,4 @@
-#ifndef OPTIONS_H
-#define OPTIONS_H
+#pragma once
 
 #define LIMIT 100
 
@@ -9,7 +8,7 @@
     example below which I use
     feel free to use whatever scheme you like
 */
-#define NAMING "$id$_$artists$"
+#define DEFAULT_NAMING "$id$_$artists$"
 #define MAX_DIRECTORY_LENGTH 128
 
 /* general options 
@@ -27,5 +26,3 @@
 #define STATUS_COLOUR "\033[0;32m"
 #define STATUS_SYMBOL '#'
 #define STATUS_SIZE 50
-
-#endif // OPTIONS_H

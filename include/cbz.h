@@ -1,6 +1,3 @@
-#ifndef CBZ_H
-#define CBZ_H
+#pragma once
 
 void zip_directory(const char* input, const char* output);
-
-#endif /* CBZ_H */

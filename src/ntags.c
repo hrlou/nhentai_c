@@ -51,6 +51,7 @@ void ntags_info(ntags_T* ntags) {
             *(ntags->gallery_id+i) = 0;
         }
         if (*s == 'P' && *(s+6) == '\n') {
+            /* Pages:\n */
             s += 10;
             int i = 0;
             for (; *(s+i) != '>'; i++);

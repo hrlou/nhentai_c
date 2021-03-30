@@ -1,5 +1,4 @@
-#ifndef NTAGS_H
-#define NTAGS_H
+#pragma once
 
 #include <stdio.h>
 
@@ -26,5 +25,3 @@ ntags_T* ntags_init(char* data);
 void ntags_print(FILE* fp, ntags_T* ntags);
 void ntags_info(ntags_T* ntags);
 void ntags_tags(ntags_T* ntags);
-
-#endif /* NTAGS_H */

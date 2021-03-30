@@ -85,3 +85,9 @@ void nhentai_download(nhentai_T* nhentai) {
     }
     return download_gallery(nhentai);
 }
+
+void* nhentai_search(const char* term) {
+    search_T* search = search_init(term);
+    search_execute(search);
+    return search;
+}

@@ -1,5 +1,4 @@
-#ifndef SEARCH_H
-#define SEARCH_H
+#pragma once
 
 #include <stdlib.h>
 
@@ -19,6 +18,3 @@ void search_add_result(search_T* search, char* id);
 int search_parse(search_T* search);
 int search_data(search_T* search);
 void search_execute(search_T* search);
-search_T* nhentai_search(const char* term);
-
-#endif /* SEARCH_H */

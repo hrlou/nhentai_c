@@ -54,7 +54,7 @@ int search_parse(search_T* search) {
 int search_data(search_T* search) {
     search->mem = curl_download_html(search_url_gen(search));
     if (search->mem->size == 0) {
-        fputs("failure downloading page; skipping\n", stderr);
+        fputs("failure downloading search\n", stderr);
         return 0;
     }
     return search_parse(search);
@@ -62,10 +62,4 @@ int search_data(search_T* search) {
 
 void search_execute(search_T* search) {
     for (; search_data(search); search->page++);
-}
-
-search_T* nhentai_search(const char* term) {
-    search_T* search = search_init(term);
-    search_execute(search);
-    return search;
 }
