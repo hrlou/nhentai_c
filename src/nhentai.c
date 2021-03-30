@@ -7,6 +7,7 @@
 #include "ntags.h"
 #include "curl.h"
 #include "output.h"
+#include "search.h"
 #include "cbz.h"
 
 nhentai_T* nhentai_init(char* id) {

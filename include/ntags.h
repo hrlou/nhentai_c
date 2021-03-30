@@ -1,6 +1,8 @@
 #ifndef NTAGS_H
 #define NTAGS_H
 
+#include <stdio.h>
+
 #include "curl.h"
 
 typedef struct ntags {
