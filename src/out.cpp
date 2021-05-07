@@ -1,4 +1,5 @@
 #include "config.h"
+
 #include "out.hpp"
 #include "curl.hpp"
 #include "nhentai.hpp"
@@ -13,9 +14,10 @@
 #ifdef USE_FORKS
 #include <sys/wait.h>
 #include <unistd.h>
-#ifndef MAX_FORKS
-#define MAX_FORKS 25
 #endif
+
+#ifdef USE_THREADS
+#include <thread>
 #endif
 
 #ifndef STATUS_COLOUR
@@ -48,9 +50,9 @@ void progress_bar(std::ostream& out, float numerator, float denominator) {
 #define SET_LOOP(MAX, SET_SIZE) for (size_t set_s = 0, set_e = (MAX < SET_SIZE) ? MAX : SET_SIZE; set_e <= MAX; set_s = set_e, set_e += ((MAX - set_e) <= SET_SIZE && (MAX % SET_SIZE) != 0) ? (MAX % SET_SIZE) : SET_SIZE)
 
 void array_download(const std::string* urls, const std::string* files, size_t num) {
-#ifdef USE_FORKS
+#if defined(USE_FORKS)
     int progress = 1;
-    SET_LOOP (num, MAX_FORKS) {
+    SET_LOOP (num, MAX_PROCESSES) {
         pid_t pid;
         for (size_t i = set_s; i < set_e; i++) {
             pid = fork();
@@ -78,6 +80,26 @@ void array_download(const std::string* urls, const std::string* files, size_t nu
                 progress_bar(std::cerr, progress, num);
             }
         }
+    }
+#elif defined(USE_THREADS)
+    auto f = [](const std::string url, const std::string file) {
+        utils::mkdir_p(utils::dirname(file));
+        if (!utils::exist_test(file)) {
+            curl::download_file(url, file + ".part");
+            rename((file + ".part").c_str(), file.c_str());
+        }
+    };
+    std::vector<std::thread> thread_vector;
+    size_t progress = 1;
+    SET_LOOP (num, MAX_PROCESSES) {
+        for (size_t i = set_s; i < set_e; i++) {
+            thread_vector.push_back(std::thread(f, urls[i], files[i]));
+        }
+        for (size_t i = 0; i < thread_vector.size(); i++) {
+            thread_vector.at(i).join();
+            progress_bar(std::cerr, progress++, num);
+        }
+        thread_vector.clear();
     }
 #else
     for (size_t i = 0; i < num; i++) {

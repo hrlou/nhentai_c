@@ -25,12 +25,15 @@ libzip-dev
 ![libzip source/binaries](https://libzip.org/download/)  
 
 
+## Configuration
+To edit the configuration, open "config.h".  
+Instructions are included in it.
+
 ## Installation
 On Linux building should be as simple as.
 ```
 git clone https://github.com/hrlou/nhentai.git
 cd nhentai
-make depends
 sudo make install
 ```
 
@@ -58,10 +61,6 @@ You can search by tags like this
 ```
 nhentai --search "foo bar"
 ```
-
-## Configuration
-To edit the configuration, open "config.h".  
-Instructions are included in it.
 
 ## Roadmap
 - [ ] cookies & option to generate them from login
