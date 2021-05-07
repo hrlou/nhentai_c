@@ -27,8 +27,3 @@
 #define STATUS_COLOUR "\033[0;32m"
 #define STATUS_SYMBOL '#'
 #define STATUS_SIZE 50
-
-/*
-payload = {'query': query, 'page': page, 'sort': sort.value}
-response = handler.get(urljoin(Hentai.HOME, 'api/galleries/search'), params=payload)
-*/
