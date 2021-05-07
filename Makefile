@@ -6,8 +6,10 @@ LDFLAGS=-lcurl -lzip -lstdc++fs
 
 CXXFILES=$(patsubst src/%.cpp,%.o,$(wildcard src/*.cpp))
 
-nhentai: main.cpp $(CXXFILES)
+nhentai: main.o $(CXXFILES)
 	$(CXX) $(INCLUDE) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
+main.o: main.cpp
+	$(CXX) $(INCLUDE) -c $< -o $@ $(CXXFLAGS)
 %.o: src/%.cpp include/%.hpp
 	$(CXX) $(INCLUDE) -c $< -o $@ $(CXXFLAGS)
 clean:

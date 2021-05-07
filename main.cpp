@@ -9,6 +9,7 @@
 struct option_struct {
     std::string fmt;
     std::string dir;
+    bool print = false;
 };
 
 static void handle_nhentai(nhentai::Doujin doujin, struct option_struct opts) {
@@ -17,6 +18,9 @@ static void handle_nhentai(nhentai::Doujin doujin, struct option_struct opts) {
     }
     if (opts.fmt.length() != 0) {
         doujin.set_fmt(opts.fmt);
+    }
+    if (opts.print) {
+        std::cout << doujin << std::endl;
     }
     doujin.download();
 }
@@ -76,11 +80,12 @@ int main(int argc, char *argv[]) {
             {"dir",         required_argument,  0,  'd'},
             {"name",        required_argument,  0,  'n'},
             {"update",      required_argument,  0,  'u'},
+            {"print",       no_argument,        0,  'p'},
             {"help",        no_argument,        0,  'h'},
             {0,             0,                  0,  0}
         };
 
-        c = getopt_long(argc, argv, "s:d:n:u:h", long_options, &option_index);
+        c = getopt_long(argc, argv, "s:d:n:u:ph", long_options, &option_index);
         if (c == -1) {
             break;
         }
@@ -94,6 +99,9 @@ int main(int argc, char *argv[]) {
             case 'n':
                 opts.fmt = optarg;
                 break;
+	    case 'p':
+		opts.print = true;
+		break;
             case 'h':
                 puts("Help!");
                 break;
