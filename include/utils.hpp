@@ -6,6 +6,9 @@
 #include <cstdarg>
 
 #include <sys/stat.h>
+#ifdef _WIN32
+#include <direct.h>
+#endif
 
 namespace utils {
     inline bool is_dir(const std::string& dir) {
@@ -23,6 +26,14 @@ namespace utils {
         return str.substr(0, str.find_last_of('/'));
     }
 
+    inline int _mkdir(const char* path) {
+#ifdef _WIN32
+        return ::_mkdir(path);
+#else
+        return ::mkdir(path, 0755);
+#endif
+    }
+
     inline bool mkdir_p(const std::string& path) {
         std::string current_level = "";
         std::string level;
@@ -30,7 +41,7 @@ namespace utils {
 
         while (std::getline(ss, level, '/')) {
             current_level += level;
-            if (!exist_test(current_level) && ::mkdir(current_level.c_str(), 0755) != 0) {
+            if (!exist_test(current_level) && _mkdir(current_level.c_str()) != 0) {
                 return false;
             }
             current_level += "/";

@@ -3,13 +3,14 @@
 #include "nhentai.hpp"
 #include "curl.hpp"
 #include "out.hpp"
-#include "zip.hpp"
 #include "utils.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <climits>
 #include <algorithm>
+
+#include "zip.hpp"
 
 #ifndef NAME_MAX
 #define NAME_MAX 128

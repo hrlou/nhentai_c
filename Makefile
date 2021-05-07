@@ -1,8 +1,8 @@
 PREFIX=/usr/local
 CXX=c++
-CXXFLAGS=-std=c++11 -Wall -pedantic -O3
+CXXFLAGS=-pipe -std=c++11 -Wall -pedantic -O3
 INCLUDE=-Iinclude -Iexternal -I.
-LDFLAGS=-lcurl -lzip -lpthread
+LDFLAGS=-lpthread -lcurl -lzip
 
 .PHONY: all clean
 all: post-build
@@ -12,10 +12,8 @@ ifeq ($(wildcard ./external/nlohmann/json.hpp),)
 	curl -L 'https://github.com/nlohmann/json/releases/download/v3.9.1/json.hpp' -o ./external/nlohmann/json.hpp
 endif
 post-build: main-build
-
 main-build: pre-build
 	@$(MAKE) --no-print-directory nhentai
-
 nhentai: curl.o out.o nhentai.o main.o
 	$(CXX) $(INCLUDE) $^ -o $@ $(CXXFLAGS) $(LDFLAGS)
 curl.o: src/curl.cpp config.h include/curl.hpp include/out.hpp include/utils.hpp
