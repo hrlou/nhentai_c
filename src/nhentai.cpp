@@ -15,7 +15,7 @@
 #define NAME_MAX 128
 #endif
 
-#define TAGS_FORMAT "Title: %title.pretty%\nMedia_Id: %media_id%\nTags: %tags%\nArtists: %artists%\nGroups: %groups%\nLanguages: %languages%\nCategories: %categories%\nPages: %pages%"
+#define TAGS_FORMAT "Id: %id%\nTitle: %title.pretty%\nMedia_Id: %media_id%\nTags: %tags%\nArtists: %artists%\nGroups: %groups%\nLanguages: %languages%\nCategories: %categories%\nPages: %pages%"
 
 #include <cstdarg>
 #include <cstring>

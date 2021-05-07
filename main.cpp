@@ -10,6 +10,7 @@ struct option_struct {
     std::string fmt;
     std::string dir;
     bool print = false;
+    bool nono = false;
 };
 
 static void handle_nhentai(nhentai::Doujin doujin, struct option_struct opts) {
@@ -20,9 +21,11 @@ static void handle_nhentai(nhentai::Doujin doujin, struct option_struct opts) {
         doujin.set_fmt(opts.fmt);
     }
     if (opts.print) {
-        std::cout << doujin << std::endl;
+        std::cout << doujin;
     }
-    doujin.download();
+    if (!opts.nono) {
+        doujin.download();
+    }
 }
 
 static void handle_nhentai_array(std::vector<nhentai::Doujin> doujins, struct option_struct opts) {
@@ -58,14 +61,14 @@ static void handle_search_inspect(nhentai::Search search, struct option_struct o
 static void handle_search(nhentai::Search search, struct option_struct opts) {
     std::cerr << search.size() << " results for \'" << search.term() << '\'' << std::endl;
     for (;;) {
-        fprintf(stderr, "\tA. Download All\n\tI. Inspect All\n\tC. Cancel\n[A/I/C]: ");
+	std::cerr << "\tA. Download All" << std::endl << "\tI. Inspect All" << std::endl << "\tC. Cancel\n[A/I/C]: ";
         char opt = toupper(getchar());
         getchar();
         switch (opt) {
             case 'A': return handle_nhentai_array(search.results(), opts);
             case 'I': return handle_search_inspect(search, opts);
             case 'C': return;
-            default: fputs("Invalid Argument", stderr);
+	    default: std::cerr << "Invalid Argument";
         }
     }
 }
@@ -80,12 +83,13 @@ int main(int argc, char *argv[]) {
             {"dir",         required_argument,  0,  'd'},
             {"name",        required_argument,  0,  'n'},
             {"update",      required_argument,  0,  'u'},
+            {"nono",        no_argument,        0,  'N'},
             {"print",       no_argument,        0,  'p'},
             {"help",        no_argument,        0,  'h'},
             {0,             0,                  0,  0}
         };
 
-        c = getopt_long(argc, argv, "s:d:n:u:ph", long_options, &option_index);
+        c = getopt_long(argc, argv, "s:d:n:u:Nph", long_options, &option_index);
         if (c == -1) {
             break;
         }
@@ -99,19 +103,22 @@ int main(int argc, char *argv[]) {
             case 'n':
                 opts.fmt = optarg;
                 break;
+	    case 'N':
+		opts.nono = true;
+		break;
 	    case 'p':
 		opts.print = true;
 		break;
             case 'h':
-                puts("Help!");
+		std::cerr << "Help!" << std::endl;
                 break;
             default:
-                fprintf(stderr, "[getopt] returned character code 0 %d\n", c);
+		std::cerr << "[getopt] returned character code 0 " << c << std::endl;
         }
     }
 
     if (search_term.length() != 0) {
-        nhentai::Search arg_search(search_term);
+        nhentai::Search arg_search(search_term, "popular");
         handle_search(arg_search, opts);
     }
 

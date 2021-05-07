@@ -21,7 +21,7 @@
     example below which I use
     feel free to use whatever scheme you like
 */
-#define DEFAULT_NAMING "%id%"
+#define DEFAULT_NAMING "%id%_%art%"
 #define DEFAULT_WORK_DIR "."
 
 #define STATUS_COLOUR "\033[0;32m"
