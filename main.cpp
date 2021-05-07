@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <getopt.h>
 
-#include "getopt.h"
 #include "nhentai.hpp"
 
 struct option_struct {
@@ -30,7 +30,7 @@ static void handle_nhentai(nhentai::Doujin doujin, struct option_struct opts) {
 
 static void handle_nhentai_array(std::vector<nhentai::Doujin> doujins, struct option_struct opts) {
     size_t count = doujins.size();
-    for (unsigned int i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         std::cerr << "Downloading (" << i + 1 << '/' << count << ") " << doujins[i].data().id << " : " << doujins[i].data().title.pretty << std::endl;
         handle_nhentai(doujins[i], opts);
     }

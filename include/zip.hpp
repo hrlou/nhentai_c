@@ -1,31 +1,23 @@
-#include <cerrno>
-#include <cstring>
-
-#include <dirent.h>
-#include <sys/stat.h>
-
-#include <zip.h>
+#include "utils.hpp"
 
 #include <iostream>
 #include <string>
 
-static inline bool is_dir(const std::string& dir) {
-    struct stat st;
-    ::stat(dir.c_str(), &st);
-    return S_ISDIR(st.st_mode);
-}
+#include <sys/stat.h>
+#include <dirent.h>
+#include <zip.h>
 
 static void walk_directory(const std::string& startdir, const std::string& inputdir, zip_t *zipper) {
-    DIR *dp = ::opendir(inputdir.c_str());
+    DIR* dp = ::opendir(inputdir.c_str());
     if (dp == nullptr) {
         throw std::runtime_error("Failed to open input directory: " + std::string(::strerror(errno)));
     }
 
-    struct dirent *dirp;
+    struct dirent* dirp;
     while ((dirp = readdir(dp)) != NULL) {
         if (dirp->d_name != std::string(".") && dirp->d_name != std::string("..")) {
             std::string fullname = inputdir + "/" + dirp->d_name;
-            if (is_dir(fullname)) {
+            if (utils::is_dir(fullname)) {
                 if (zip_dir_add(zipper, fullname.substr(startdir.length() + 1).c_str(), ZIP_FL_ENC_UTF_8) < 0) {
                     throw std::runtime_error("Failed to add directory to zip: " + std::string(zip_strerror(zipper)));
                 }
@@ -64,12 +56,6 @@ inline void zip_directory(const std::string& inputdir, const std::string& output
     zip_close(zipper);
 }
 
-inline void zip_read_file(const std::string& zip) {
-    int errorp;
-    zip_t* archive = zip_open(zip.c_str(), ZIP_CHECKCONS, &errorp);
-    zip_close(archive);
-}
-
 inline std::string zip_get_file(const std::string& zip_name, const std::string& fname) {
     int errorp;
     zip_t* archive = zip_open(zip_name.c_str(), ZIP_CHECKCONS, &errorp);
@@ -82,15 +68,16 @@ inline std::string zip_get_file(const std::string& zip_name, const std::string& 
     zip_stat_init(&st);
     zip_stat(archive, fname.c_str(), 0, &st);
     if (st.size <= 0) {
-        return "";
+        std::cerr << "Failed to open file " << fname << " in " << zip_name << std::endl;
         zip_close(archive);
+        return "";
     }
-    auto buf = std::make_unique<char[]>(st.size);
+    char* buf = new char[st.size];
     zip_file* f = zip_fopen(archive, fname.c_str(), 0);
-    zip_fread(f, buf.get(), st.size);
-    buf.get()[st.size] = '\0';
+    zip_fread(f, buf, st.size);
+    std::string rv(buf, st.size);
+    delete [] buf;
     zip_fclose(f);
-
     zip_close(archive);
-    return std::string(buf.get());
+    return rv;
 }

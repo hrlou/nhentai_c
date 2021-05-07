@@ -1,15 +1,4 @@
 #pragma once
-
-#define HOST_SITE "nhentai.net"
-#define HOST_URL "https://" HOST_SITE
-#define IMAGE_URL "https://i." HOST_SITE
-#define THUMBS_URL "https://t." HOST_SITE
-#define API_URL HOST_URL "/api"
-#define GALLERY_URL API_URL "/gallery"
-#define SEARCH_URL API_URL "/galleries/search"
-
-/* important options */
-
 #ifndef _WIN32
 #define USE_FORKS
 #endif
@@ -21,6 +10,8 @@
     example below which I use
     feel free to use whatever scheme you like
 */
+#define TAGS_FORMAT "Title: %title.pretty%\nMedia_Id: %media_id%\nTags: %tags%\nArtists: %artists%\nGroups: %groups%\nLanguages: %languages%\nCategories: %categories%\nPages: %pages%"
+
 #define DEFAULT_NAMING "%id%_%art%"
 #define DEFAULT_WORK_DIR "."
 

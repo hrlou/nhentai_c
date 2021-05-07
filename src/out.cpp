@@ -1,14 +1,12 @@
+#include "config.h"
 #include "out.hpp"
 #include "curl.hpp"
 #include "nhentai.hpp"
-#include "config.h"
+#include "utils.hpp"
 
 #include <zip.h>
 
-#include <cerrno>
-
 #include <iostream>
-#include <filesystem>
 #include <vector>
 #include <string>
 
@@ -57,8 +55,8 @@ void array_download(const std::string* urls, const std::string* files, size_t nu
         for (size_t i = set_s; i < set_e; i++) {
             pid = fork();
             if (pid == 0) {
-                std::filesystem::create_directories(dirname(files[i]));
-                if (!exist_test(files[i])) {
+                utils::mkdir_p(utils::dirname(files[i]));
+                if (!utils::exist_test(files[i])) {
                     curl::download_file(urls[i], files[i] + ".part");
                     rename((files[i] + ".part").c_str(), files[i].c_str());
                 }
@@ -66,14 +64,16 @@ void array_download(const std::string* urls, const std::string* files, size_t nu
             } else if (pid > 0) {
                 // the child has been forked and we are in the parent
             } else if (pid < 0) {
-                perror("failed to fork");
+                // perror("failed to fork");
+                throw std::runtime_error("Failed to fork");
             }
         }
         for (int status; (pid = waitpid(-1, &status, 0)); progress++) {
             if (pid == -1) {
                 break;
             } else if (pid == -1) {
-                perror("waitpid");
+                // perror("waitpid");
+                throw std::runtime_error("Waitpid");
             } else if (WIFEXITED(status)) {
                 progress_bar(std::cerr, progress, num);
             }
@@ -81,8 +81,8 @@ void array_download(const std::string* urls, const std::string* files, size_t nu
     }
 #else
     for (size_t i = 0; i < num; i++) {
-        std::filesystem::create_directories(dirname(files[i]));
-        if (!exist_test(files[i])) {
+        utils::mkdir_p(utils::dirname(files[i]));
+        if (!utils::exist_test(files[i])) {
             curl::download_file(urls[i], files[i] + ".part");
             rename((files[i] + ".part").c_str(), files[i].c_str());
         }

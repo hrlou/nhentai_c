@@ -1,5 +1,6 @@
 #include "curl.hpp"
 #include "out.hpp"
+#include "utils.hpp"
 
 #include <cstring>
 #include <string>
@@ -33,9 +34,9 @@ namespace curl {
         FILE* file_output;
 
         /* only download if the file doesn't exist */
-        if (!exist_test(output.c_str())) {
+        if (!utils::exist_test(output.c_str())) {
             get_file = curl_easy_init();
-            file_output = fopen(output.c_str(), "w");
+            file_output = ::fopen(output.c_str(), "w");
             if (file_output == NULL) {
                 return false;
             }
@@ -50,13 +51,13 @@ namespace curl {
 
             /* file download fail */
             if (get_file_result) {
-                fclose(file_output);
-                remove(output.c_str());
+                ::fclose(file_output);
+                ::remove(output.c_str());
                 curl_easy_cleanup(get_file);
                 return false;
             }
             curl_easy_cleanup(get_file);
-            fclose(file_output);
+            ::fclose(file_output);
         }
         return true; 
     }

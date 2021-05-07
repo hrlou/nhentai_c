@@ -1,38 +1,22 @@
+#include "config.h"
+
 #include "nhentai.hpp"
 #include "curl.hpp"
 #include "out.hpp"
+#include "zip.hpp"
+#include "utils.hpp"
 
 #include <iostream>
 #include <fstream>
 #include <climits>
-#include <memory>
-#include <filesystem>
 #include <algorithm>
-
-#include <external/zip.hpp>
 
 #ifndef NAME_MAX
 #define NAME_MAX 128
 #endif
 
-#define TAGS_FORMAT "Id: %id%\nTitle: %title.pretty%\nMedia_Id: %media_id%\nTags: %tags%\nArtists: %artists%\nGroups: %groups%\nLanguages: %languages%\nCategories: %categories%\nPages: %pages%"
-
-#include <cstdarg>
-#include <cstring>
-
-static inline std::string strformat(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    size_t size = vsnprintf(nullptr, 0, fmt, args) + 1;
-    va_start(args, fmt);
-    auto buf = std::make_unique<char[]>(size);
-    vsnprintf(buf.get(), size, fmt, args);
-    va_end(args);
-    return std::string(buf.get(), buf.get() + size - 1);
-}
-
 namespace nhentai {
-    TagType str_to_type(const std::string& str) {
+    const TagType str_to_type(const std::string& str) {
         switch (str[0]) {
             case 'p': return TAG_PARODY;
             case 't': return TAG_TAG;
@@ -50,7 +34,7 @@ namespace nhentai {
         }
     }
 
-    std::string type_to_str(TagType type) {
+    const std::string type_to_str(const TagType& type) {
         switch (type) {
             case TAG_UNKNOWN: return "UNKNOWN";
             case TAG_PARODY: return "PARODY";
@@ -61,7 +45,7 @@ namespace nhentai {
             case TAG_LANGUAGE: return "LANGUAGE";
             case TAG_CATEGORY: return "CATEGORY";
         }
-        return nullptr;
+        throw std::runtime_error("TagType unset");
     }
 }
 
@@ -170,7 +154,10 @@ namespace nhentai {
 
     void Doujin::setup_files(void) {
         if (m_WorkingDir.empty()) {
-            m_WorkingDir = "./";
+            m_WorkingDir = DEFAULT_WORK_DIR;
+        }
+        if (m_Fmt.empty()) {
+            m_Fmt = DEFAULT_NAMING;
         }
         if (m_WorkingDir.back() != '/') {
             m_WorkingDir.push_back('/');
@@ -193,8 +180,8 @@ namespace nhentai {
         for (auto i : m_Data.pages) {
             m_Urls.push_back(page_url(m_Urls.size() + 1, i));
         }
-        for (unsigned int i = 0; i < m_Data.num_pages; i++) {
-            m_Files.push_back(strformat("%s%03d.%s", m_OutputDir.c_str(), i + 1, m_Urls[i].substr(m_Urls[i].length() - 3, m_Urls[i].length()).c_str()));
+        for (size_t i = 0; i < m_Data.num_pages; i++) {
+            m_Files.push_back(utils::strformat("%s%03d.%s", m_OutputDir.c_str(), i + 1, m_Urls[i].substr(m_Urls[i].length() - 3, m_Urls[i].length()).c_str()));
         }
     }
 
@@ -204,16 +191,21 @@ namespace nhentai {
         }
         setup_files();
         std::string archive = m_OutputDir.substr(0, m_OutputDir.length() - 1) + ".cbz";
-        if (exist_test(archive)) {
+        if (utils::exist_test(archive)) {
             std::cerr << "Skipping " << archive << ": File already exists" << std::endl;
             return;
         }
         vector_download(m_Urls, m_Files);
-        std::ofstream((m_OutputDir + "index.json"), std::ios::out) << m_Json.dump();
-        std::ofstream((m_OutputDir + std::to_string(m_Data.id) + ".txt"), std::ios::out) << doujin_data_format(TAGS_FORMAT, ", ", m_Data);
+        m_Files.push_back((m_OutputDir + "index.json"));
+        std::ofstream(m_Files.back(), std::ios::out) << m_Json.dump();
+        m_Files.push_back((m_OutputDir + std::to_string(m_Data.id) + ".txt"));
+        std::ofstream(m_Files.back(), std::ios::out) << doujin_data_format(TAGS_FORMAT, ", ", m_Data);
         zip_directory(m_OutputDir, archive);
         if (m_RemoveDir) {
-            std::filesystem::remove_all(m_OutputDir);
+            for (auto i : m_Files) {
+                ::remove(i.c_str());
+            }
+            ::remove(m_OutputDir.c_str());
         }
     }
 }
@@ -226,7 +218,7 @@ namespace nhentai {
     }
 
     void Search::execute(void) {
-        for (unsigned int i = 1; i <= m_NumPages; i++) {
+        for (size_t i = 1; i <= m_NumPages; i++) {
             m_Json = json::parse(curl::download_html(url(i)));
             if (i == 1) {
                 m_NumPages = m_Json["num_pages"];
