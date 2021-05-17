@@ -155,7 +155,6 @@ namespace nhentai {
         inline std::string arg_page(int page) { return (page != 0) ? "&page=" + std::to_string(page) : ""; }
         inline std::string url(int page) { return std::string(SEARCH_URL) + "?query=" + m_Term + arg_sort() + arg_page(page); }
 
-        void eat_json(void);
         void execute(void);
     public:
         Search(std::string term) 

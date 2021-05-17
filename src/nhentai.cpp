@@ -174,7 +174,7 @@ void nhentai::Doujin::setup_files(void) {
         tmp.erase(0, pos + 1);
     }
     for (auto i : tokens) {
-        m_OutputDir += i.substr(0, (i.length() < NAME_MAX) ? i.length() : NAME_MAX) + '/';
+        m_OutputDir += i.substr(0, (i.length() < NAME_MAX) ? i.length() : NAME_MAX - 12) + '/';
     }
     m_OutputDir.insert(0, m_WorkingDir);
     for (auto i : m_Data.pages) {
@@ -222,12 +222,6 @@ void nhentai::Doujin::create_cbz(void) {
     }
 }
 
-void nhentai::Search::eat_json(void) {
-    for (auto i : m_Json["result"]) {
-        m_Results.push_back(Doujin(i));
-    }
-}
-
 void nhentai::Search::execute(void) {
     for (size_t i = 1; i <= m_NumPages; i++) {
         m_Json = json::parse(curl::download_html(url(i)));
@@ -237,6 +231,8 @@ void nhentai::Search::execute(void) {
                 break;
             }
         }
-        eat_json();
+        for (auto i : m_Json["result"]) {
+            m_Results.push_back(Doujin(i));
+        }
     }
 }

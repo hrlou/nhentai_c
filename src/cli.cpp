@@ -85,6 +85,7 @@ static void print_banner(std::ostream& out) {
     out << "nhentai downloader C++" << std::endl;
     out << " -h, --help\tDisplay this help text" << std::endl;
     out << " -s, --search\tSearch term" << std::endl;
+    out << " -l, --list\tList of ids seperated by hashes" << std::endl;
     out << " -o, --output\tOutput directory" << std::endl;
     out << " -f, --format\tFormat saved doujin name" << std::endl;
     out << " -P, --print\tDisplay doujin tags" << std::endl;
@@ -98,11 +99,13 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
     std::string search_term;
+    std::string id_list;
     struct option_struct opts;
     while (1) {
         int option_index = 0, c;
         static struct option long_options[] = {
             {"search",      required_argument,  0,  's'},
+            {"list",        required_argument,  0,  'l'},
             {"output",      required_argument,  0,  'o'},
             {"format",      required_argument,  0,  'f'},
             {"help",        no_argument,        0,  'h'},
@@ -113,13 +116,16 @@ int main(int argc, char *argv[]) {
             {0,             0,                  0,  0}
         };
 
-        c = getopt_long(argc, argv, "s:o:f:hPN", long_options, &option_index);
+        c = getopt_long(argc, argv, "s:l:o:f:hPN", long_options, &option_index);
         if (c == -1) {
             break;
         }
         switch (c) {
         case 's':
             search_term = optarg;
+            break;
+        case 'l':
+            id_list = optarg;
             break;
         case 'o':
             opts.dir = optarg;
@@ -141,6 +147,8 @@ int main(int argc, char *argv[]) {
             break;
         default:
             std::cerr << "[getopt] returned character code 0 " << c << std::endl;
+            print_banner(std::cerr);
+            exit(0);
         }
     }
 
@@ -153,6 +161,19 @@ int main(int argc, char *argv[]) {
     for (int index = optind; index < argc; index++) {
         arg_doujins.push_back(nhentai::Doujin(std::string(argv[index])));
     }
+    if (id_list.length() != 0) {
+        if (id_list.back() != '#') {
+            id_list.push_back('#');
+        }
+        if (id_list.front() == '#') {
+            id_list.erase(0, 1);
+        }
+        for (size_t pos = 0; (pos = id_list.find('#')) != std::string::npos;) {
+            arg_doujins.push_back(nhentai::Doujin(id_list.substr(0, pos)));
+            id_list.erase(0, pos + 1);
+        }
+    }
+
     handle_nhentai_array(arg_doujins, opts);
     return 0;
 }

@@ -12,19 +12,24 @@ OBJ=$(CPP:%.cpp=$(BUILD_DIR)/%.o)
 DEP=$(OBJ:%.o=%.d)
 
 .PHONY: all clean
+
 all: post-build
+
 pre-build:
 ifeq ($(wildcard $(PREFIX)/include/nlohmann/json.hpp),)
 ifeq ($(wildcard $(BUILD_DIR)/json.hpp),)
 	@mkdir -p $(BUILD_DIR)
-	curl -L 'https://github.com/nlohmann/json/releases/download/v3.9.1/json.hpp' -o $(BUILD_DIR)/json.hpp
+	-curl -L 'https://github.com/nlohmann/json/releases/download/v3.9.1/json.hpp' -o $(BUILD_DIR)/json.hpp
 endif
 endif
+
 post-build: main-build
+
 main-build: pre-build
 	@$(MAKE) --no-print-directory $(BIN)
 
 $(BIN) : $(BUILD_DIR)/$(BIN)
+	-ln -sf $< $@
 
 $(BUILD_DIR)/$(BIN) : $(OBJ)
 	@mkdir -p $(@D)
@@ -37,7 +42,10 @@ $(BUILD_DIR)/%.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -MMD -c $< -o $@
 
 clean:
-	-rm -rf $(OBJ) $(DEP) $(BUILD_DIR)
+	-rm -rf $(BIN) $(OBJ) $(DEP) $(BUILD_DIR)
+
 install: all
-	install -D $(BUILD_DIR)/json.hpp $(PREFIX)/include/nlohmann/json.hpp
-	install -m 775 $(BIN) $(PREFIX)/bin/$(BIN)
+ifeq ($(wildcard $(BUILD_DIR)/json.hpp),)
+	-install -D $(BUILD_DIR)/json.hpp $(PREFIX)/include/nlohmann/json.hpp
+endif
+	-install -m 775 $(BIN) $(PREFIX)/bin/$(BIN)
