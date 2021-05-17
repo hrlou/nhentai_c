@@ -62,7 +62,7 @@ namespace nhentai {
     } DoujinData;
 
     DoujinData doujin_data_generate(json& json_obj);
-    std::string doujin_data_format(std::string fmt, const DoujinData data);
+    std::string doujin_data_format(std::string __fmt, std::string delim, const DoujinData data);
     void doujin_data_print(std::ostream& out, const DoujinData data);
 
     class Doujin {
@@ -70,12 +70,13 @@ namespace nhentai {
         json m_Json;
         DoujinData m_Data;
 
-        bool m_Failed = false;
-        bool m_RemoveDir = true;
+        bool Failed = false;
+        bool Downloaded = false;
 
         std::string m_Fmt;
         std::string m_WorkingDir;
         std::string m_OutputDir;
+        std::string m_Archive;
 
         std::vector<std::string> m_Urls;
         std::vector<std::string> m_Files;
@@ -115,7 +116,7 @@ namespace nhentai {
                 web_json(api_url(atoi(&json_src[0])));
             } else {
                 std::cerr << "unkown source" << std::endl;
-                m_Failed = true;
+                Failed = true;
             }
         }
         Doujin(const unsigned int id) {
@@ -125,7 +126,7 @@ namespace nhentai {
         inline const DoujinData data(void) const { return m_Data; }
         inline const std::string dump(void) const { return m_Json.dump(4); }
         inline void print(std::ostream& out) const {
-            if (m_Failed == true) return;
+            if (Failed == true) return;
             doujin_data_print(out, m_Data);
         }
 
@@ -138,6 +139,8 @@ namespace nhentai {
         };
 
         void download(void);
+        void create_cbz(void);
+        void remove(void);
     };
 
     class Search {
@@ -153,6 +156,7 @@ namespace nhentai {
         inline std::string url(int page) { return std::string(SEARCH_URL) + "?query=" + m_Term + arg_sort() + arg_page(page); }
 
         void eat_json(void);
+        void execute(void);
     public:
         Search(std::string term) 
             : m_Term(term) {
@@ -166,7 +170,5 @@ namespace nhentai {
         inline const size_t size(void) const { return m_Results.size(); }
         inline const std::vector<Doujin> results(void) const { return m_Results; }
         inline const Doujin operator[](const size_t index) { return m_Results[index]; }
-
-        void execute(void);
     };
 }

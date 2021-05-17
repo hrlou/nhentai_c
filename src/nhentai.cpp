@@ -122,112 +122,121 @@ namespace nhentai {
     }
 }
 
-namespace nhentai {
-    void Doujin::set_json(const std::string& json) {
-        if (json.front() != '{' && json.back() != '}') {
-            std::cerr << "invalid json data, skipping" << std::endl;
-            m_Failed = true;
-        } else {
-            m_Json = json::parse(json);
-            m_Data = doujin_data_generate(m_Json);
-        }                
-    }
+void nhentai::Doujin::set_json(const std::string& json) {
+    if (json.front() != '{' && json.back() != '}') {
+        std::cerr << "invalid json data, skipping" << std::endl;
+        Failed = true;
+    } else {
+        m_Json = json::parse(json);
+        m_Data = doujin_data_generate(m_Json);
+    }                
+}
 
-    void Doujin::file_json(const std::string& name) {
-        std::ifstream file(name, std::ios::in);
-        std::string src((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        set_json(src);
-    }
+void nhentai::Doujin::file_json(const std::string& name) {
+    std::ifstream file(name, std::ios::in);
+    std::string src((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    set_json(src);
+}
 
-    void Doujin::archive_json(const std::string& archive) {
-        set_json(zip_get_file(archive, "index.json"));
-    }
-    
-    void Doujin::web_json(const std::string& url) {
-        std::string json = curl::download_html(url);
-        if (json.length() <= 0) {
-            std::cerr << "couldn't download json, skipping" << std::endl;
-            m_Failed = true;
-        } else {
-            set_json(json);
-        }
-    }
+void nhentai::Doujin::archive_json(const std::string& m_Archive) {
+    set_json(zip_get_file(m_Archive, "index.json"));
+}
 
-    void Doujin::setup_files(void) {
-        if (m_WorkingDir.empty()) {
-            m_WorkingDir = DEFAULT_WORK_DIR;
-        }
-        if (m_Fmt.empty()) {
-            m_Fmt = DEFAULT_NAMING;
-        }
-        if (m_WorkingDir.back() != '/') {
-            m_WorkingDir.push_back('/');
-        }
-        std::string tmp = doujin_data_format(m_Fmt, "_", m_Data);
-        std::replace(tmp.begin(), tmp.end(), ' ', '-');
-        while (tmp.back() == '/') {
-            tmp.pop_back();
-        }
-        tmp.push_back('/');
-        std::vector<std::string> tokens;
-        for (size_t pos = 0; (pos = tmp.find('/')) != std::string::npos;) {
-            tokens.push_back(tmp.substr(0, pos));
-            tmp.erase(0, pos + 1);
-        }
-        for (auto i : tokens) {
-            m_OutputDir += i.substr(0, (i.length() < NAME_MAX) ? i.length() : NAME_MAX) + '/';
-        }
-        m_OutputDir.insert(0, m_WorkingDir);
-        for (auto i : m_Data.pages) {
-            m_Urls.push_back(page_url(m_Urls.size() + 1, i));
-        }
-        for (size_t i = 0; i < m_Data.num_pages; i++) {
-            m_Files.push_back(utils::strformat("%s%03d.%s", m_OutputDir.c_str(), i + 1, m_Urls[i].substr(m_Urls[i].length() - 3, m_Urls[i].length()).c_str()));
-        }
-    }
-
-    void Doujin::download(void) {
-        if (m_Failed == true) {
-            return;
-        }
-        setup_files();
-        std::string archive = m_OutputDir.substr(0, m_OutputDir.length() - 1) + ".cbz";
-        if (utils::exist_test(archive)) {
-            std::cerr << "Skipping " << archive << ": File already exists" << std::endl;
-            return;
-        }
-        vector_download(m_Urls, m_Files);
-        m_Files.push_back((m_OutputDir + "index.json"));
-        std::ofstream(m_Files.back(), std::ios::out) << m_Json.dump();
-        m_Files.push_back((m_OutputDir + std::to_string(m_Data.id) + ".txt"));
-        std::ofstream(m_Files.back(), std::ios::out) << doujin_data_format(TAGS_FORMAT, ", ", m_Data);
-        zip_directory(m_OutputDir, archive);
-        if (m_RemoveDir) {
-            for (auto i : m_Files) {
-                ::remove(i.c_str());
-            }
-            ::remove(m_OutputDir.c_str());
-        }
+void nhentai::Doujin::web_json(const std::string& url) {
+    std::string json = curl::download_html(url);
+    if (json.length() <= 0) {
+        std::cerr << "couldn't download json, skipping" << std::endl;
+        Failed = true;
+    } else {
+        set_json(json);
     }
 }
 
-namespace nhentai {
-    void Search::eat_json(void) {
-        for (auto i : m_Json["result"]) {
-            m_Results.push_back(Doujin(i));
-        }
+void nhentai::Doujin::setup_files(void) {
+    if (m_WorkingDir.empty()) {
+        m_WorkingDir = DEFAULT_WORK_DIR;
     }
+    if (m_Fmt.empty()) {
+        m_Fmt = DEFAULT_NAMING;
+    }
+    if (m_WorkingDir.back() != '/') {
+        m_WorkingDir.push_back('/');
+    }
+    std::string tmp = doujin_data_format(m_Fmt, "_", m_Data);
+    std::replace(tmp.begin(), tmp.end(), ' ', '-');
+    while (tmp.back() == '/') {
+        tmp.pop_back();
+    }
+    tmp.push_back('/');
+    std::vector<std::string> tokens;
+    for (size_t pos = 0; (pos = tmp.find('/')) != std::string::npos;) {
+        tokens.push_back(tmp.substr(0, pos));
+        tmp.erase(0, pos + 1);
+    }
+    for (auto i : tokens) {
+        m_OutputDir += i.substr(0, (i.length() < NAME_MAX) ? i.length() : NAME_MAX) + '/';
+    }
+    m_OutputDir.insert(0, m_WorkingDir);
+    for (auto i : m_Data.pages) {
+        m_Urls.push_back(page_url(m_Urls.size() + 1, i));
+    }
+    for (size_t i = 0; i < m_Data.num_pages; i++) {
+        m_Files.push_back(utils::strformat("%s%03d.%s", m_OutputDir.c_str(), i + 1, m_Urls[i].substr(m_Urls[i].length() - 3, m_Urls[i].length()).c_str()));
+    }
+    m_Archive = m_OutputDir.substr(0, m_OutputDir.length() - 1) + ".cbz";
+}
 
-    void Search::execute(void) {
-        for (size_t i = 1; i <= m_NumPages; i++) {
-            m_Json = json::parse(curl::download_html(url(i)));
-            if (i == 1) {
-                m_NumPages = m_Json["num_pages"];
-                if (m_NumPages == 0) {
-                    break;
-                }
-            }
-            eat_json();
+void nhentai::Doujin::download(void) {
+    if (Failed == true) {
+        return;
+    }
+    setup_files();
+    if (utils::exist_test(m_Archive)) {
+        std::cerr << "Skipping " << m_Archive << ": File already exists" << std::endl;
+        return;
+    }
+    vector_download(m_Urls, m_Files);
+    m_Files.push_back((m_OutputDir + "index.json"));
+    std::ofstream(m_Files.back(), std::ios::out) << m_Json.dump();
+    m_Files.push_back((m_OutputDir + std::to_string(m_Data.id) + ".txt"));
+    std::ofstream(m_Files.back(), std::ios::out) << doujin_data_format(TAGS_FORMAT, ", ", m_Data);
+    Downloaded = true;
+}
+
+void nhentai::Doujin::remove(void) {
+    if (Downloaded) {
+        for (auto i : m_Files) {
+            ::remove(i.c_str());
         }
+        ::remove(m_OutputDir.c_str());
+    } else {
+        std::cerr << "Cannot delete doujin; doujin not downloaded" << std::endl;
+    }
+}
+
+void nhentai::Doujin::create_cbz(void) {
+    if (Downloaded) {
+        zip_directory(m_OutputDir, m_Archive);
+    } else {
+        std::cerr << "Cannot create cbz file; doujin not downloaded" << std::endl;
+    }
+}
+
+void nhentai::Search::eat_json(void) {
+    for (auto i : m_Json["result"]) {
+        m_Results.push_back(Doujin(i));
+    }
+}
+
+void nhentai::Search::execute(void) {
+    for (size_t i = 1; i <= m_NumPages; i++) {
+        m_Json = json::parse(curl::download_html(url(i)));
+        if (i == 1) {
+            m_NumPages = m_Json["num_pages"];
+            if (m_NumPages == 0) {
+                break;
+            }
+        }
+        eat_json();
     }
 }
