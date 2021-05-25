@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
             {"output",      required_argument,  0,  'o'},
             {"format",      required_argument,  0,  'f'},
             {"help",        no_argument,        0,  'h'},
-            {"print",       no_argument,        0,  'p'},
+            {"print",       no_argument,        0,  'P'},
             {"nono",        no_argument,        0,  'N'},
             {"cbz",         no_argument,        0,  'C'},
             // {"pdf",         no_argument,        0,  'P'},
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
         case 'h':
             print_banner(std::cerr);
             break;
-        case 'p':
+        case 'P':
             opts.print = true;
             break;
         case 'N':
