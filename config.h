@@ -18,7 +18,7 @@
 // default directory to work in
 #define DEFAULT_WORK_DIR "."
 // format to print DoujinData in
-#define TAGS_FORMAT "Title: %title.pretty%\nMedia_Id: %media_id%\nTags: %tags%\nArtists: %artists%\nGroups: %groups%\nLanguages: %languages%\nCategories: %categories%\nPages: %pages%"
+#define TAGS_FORMAT "Title: %title.pretty%\nMedia_Id: %media_id%\nParodies: %parodies%\nCharacters: %characters%\nTags: %tags%\nArtists: %artists%\nGroups: %groups%\nLanguages: %languages%\nCategories: %categories%\nPages: %pages%"
 
 #define MAX_PROCESSES 25
 
