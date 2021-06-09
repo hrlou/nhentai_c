@@ -1,15 +1,15 @@
-BIN=nhentai
-BUILD_DIR=./build
+BIN := nhentai
+BUILD_DIR := ./build
 
-CXX=c++
-CXXFLAGS=-std=c++11 -pipe -pedantic -O3 -Wall
-PREFIX=/usr/local
-INCLUDE=-I. -I./include -I$(BUILD_DIR) -I$(PREFIX)/include
-LDFLAGS=-lpthread -lcurl -lzip
+CXX := c++
+CXXFLAGS := -std=c++11 -pipe -pedantic -O3 -Wall
+PREFIX := /usr/local
+INCLUDE := -I. -I./include -I$(BUILD_DIR) -I$(PREFIX)/include
+LDFLAGS := -lpthread -lcurl -lzip
 
-CPP=$(wildcard src/*.cpp)
-OBJ=$(CPP:%.cpp=$(BUILD_DIR)/%.o)
-DEP=$(OBJ:%.o=%.d)
+CPP := $(shell find src/ -name "*.cpp")
+OBJ := $(CPP:%.cpp=$(BUILD_DIR)/%.o)
+DEP := $(OBJ:%.o=%.d)
 
 .PHONY: all clean install uninstall
 
