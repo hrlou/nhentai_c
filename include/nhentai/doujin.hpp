@@ -15,9 +15,9 @@ public:
         data = _data;
     }
     friend std::ostream& operator<<(std::ostream& os, const Doujin& doujin);
-    void download(void);
-    void remove(void);
-    void create_cbz(void);
+    bool download(void);
+    bool remove(void);
+    bool create_cbz(void);
 public:
     Data data;
     std::string fmt;

@@ -79,20 +79,21 @@ std::ostream& operator<<(std::ostream& os, const Doujin& doujin) {
     return os << doujin.data.format(TAGS_FORMAT, ", ");
 }
 
-void Doujin::download(void) {
+bool Doujin::download(void) {
     setup_files();
     if (utils::exist_test(doujin_dir.substr(0, doujin_dir.length() - 1) + ".cbz")) {
         std::cerr << "[Doujin] Skipping \"" << data.id << "\": File already exists" << std::endl;
         created_cbz = true;
-        return;
+        return false;
     }
     download_vector(gen::page_urls(data), gen::page_files(data, doujin_dir));
     std::ofstream((doujin_dir + "index.json"), std::ios::out) << data.json;
     std::ofstream((doujin_dir + std::to_string(data.id) + ".txt"), std::ios::out) << *this;
     created_dir = true;
+    return true;
 }
 
-void Doujin::remove(void) {
+bool Doujin::remove(void) {
     if (created_dir) {
         for (auto i : gen::page_files(data, doujin_dir)) {
             ::remove(i.c_str());
@@ -100,19 +101,24 @@ void Doujin::remove(void) {
         ::remove((doujin_dir + "index.json").c_str());
         ::remove((doujin_dir + std::to_string(data.id) + ".txt").c_str());
         ::remove(doujin_dir.c_str());
+	return true;
     } else {
         std::cerr << "[Doujin] Cannot delete doujin: doujin not downloaded" << std::endl;
+	return false;
     }
 }
 
-void Doujin::create_cbz(void) {
+bool Doujin::create_cbz(void) {
     if (!created_dir) {
         std::cerr << "[Doujin] Cannot create cbz file: doujin not downloaded" << std::endl;
+        return false;
     } else if (created_cbz) {
         std::cerr << "[Doujin] Cannot create cbz file: already exists" << std::endl;
+    	return false;
     } else {
         zip_directory(doujin_dir, (doujin_dir.substr(0, doujin_dir.length() - 1) + ".cbz"));
     }
+    return true;
 }
 
 }

@@ -40,7 +40,9 @@ static void handle_nhentai(nhentai::Doujin doujin) {
         std::cout << doujin;
     }
     if (OPTIONS.download) {
-        doujin.download();
+        if (!doujin.download()) {
+	    return;
+	}
     }
     if (OPTIONS.cbz) {
         doujin.create_cbz();
@@ -60,10 +62,13 @@ static void handle_nhentai_array(std::vector<nhentai::Doujin> doujins) {
 
 static void handle_search(const std::string search_term) {
     auto results = nhentai::search(search_term);
-    std::cerr << results.size() << " results for \'" << search_term << '\'' << std::endl;
     if (!OPTIONS.duplicates) {
-        std::cerr << "removing duplicates..." << std::endl;
+	const size_t orig = results.size();
+        std::cerr << "removing duplicates ";
         nhentai::remove_duplicates(results);
+	std::cerr << (orig - results.size()) << std::endl;
+        std::cerr << results.size() << " results for \'" << search_term << '\'' << std::endl;
+    } else {
         std::cerr << results.size() << " results for \'" << search_term << '\'' << std::endl;
     }
     handle_nhentai_array(std::vector<nhentai::Doujin>(results.begin(), results.end()));

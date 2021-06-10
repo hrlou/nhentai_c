@@ -2,7 +2,6 @@
 
 #include <string>
 #include <algorithm>
-#include <iostream>
 
 #include <internal/parse.hpp>
 #include <internal/curl.hpp>
@@ -35,7 +34,7 @@ std::vector<Data> search(const std::string query, const std::string sort) {
     pages.push_back(curl::download_page(gen::url(query, sort, 0)));
     std::pair<size_t, size_t> size = parse::search_size(pages.front());
     if (size.first == 0) {
-        std::cerr << "[search] no results for: " << query << std::endl;
+        // std::cerr << "[search] no results for: " << query << std::endl;
         return {};
     }
     
