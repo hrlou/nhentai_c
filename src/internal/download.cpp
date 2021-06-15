@@ -34,18 +34,11 @@ static void progress_bar(std::ostream& os, float numerator, float denominator) {
 
 void download_array(const std::string* urls, const std::string* files, size_t num) {
 #if defined(USE_THREADS)
-    auto f = [](const std::string url, const std::string file) {
-        utils::mkdir_p(utils::dirname(file));
-        if (!utils::exist_test(file)) {
-            curl::download_file(url, file + ".part");
-            rename((file + ".part").c_str(), file.c_str());
-        }
-    };
     std::vector<std::thread> thread_vector;
     size_t progress = 1;
     SET_LOOP (num, MAX_PROCESSES) {
         for (size_t i = set_s; i < set_e; i++) {
-            thread_vector.push_back(std::thread(f, urls[i], files[i]));
+            thread_vector.push_back(std::thread(curl::download_file, urls[i], files[i]));
         }
         for (size_t i = 0; i < thread_vector.size(); i++) {
             thread_vector.at(i).join();
@@ -55,12 +48,8 @@ void download_array(const std::string* urls, const std::string* files, size_t nu
     }
 #else
     for (size_t i = 0; i < num; i++) {
-        utils::mkdir_p(utils::dirname(files[i]));
-        if (!utils::exist_test(files[i])) {
-            curl::download_file(urls[i], files[i] + ".part");
-            rename((files[i] + ".part").c_str(), files[i].c_str());
-        }
-        progress_bar(std::cerr, i + 1, num);
+        curl::download_file(urls[i], files[i]);
+        std::cout << files[i] << std::endl;
     }
 #endif
 }

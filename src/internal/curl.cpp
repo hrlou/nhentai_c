@@ -9,6 +9,8 @@ static inline size_t write_callback(char* buf, size_t size, size_t nmemb, std::s
     return size*nmemb;
 }
 
+#include <iostream>
+
 namespace curl {
 
 std::string download_page(const std::string& url) {
@@ -26,14 +28,21 @@ std::string download_page(const std::string& url) {
     return src;
 }
 
-bool download_file(const std::string& url, const std::string& output) {
+bool download_file(const std::string& url, const std::string& _output) {
+    if (!utils::exist_test(utils::dirname(_output))) {
+        std::cerr << "[Curl] cannot download file; no such directory " << utils::dirname(_output) << std::endl;
+        return false;
+    }
     /* our curl objects */
     CURL* get_file;
     CURLcode get_file_result;
     FILE* file_output;
-
+    const std::string output = (_output + ".part");
+    if (!utils::exist_test(output)) {
+        ::remove(output.c_str());
+    }
     /* only download if the file doesn't exist */
-    if (!utils::exist_test(output.c_str())) {
+    if (!utils::exist_test(_output)) {
         get_file = curl_easy_init();
         file_output = ::fopen(output.c_str(), "w");
         if (file_output == NULL) {
@@ -57,6 +66,7 @@ bool download_file(const std::string& url, const std::string& output) {
         }
         curl_easy_cleanup(get_file);
         ::fclose(file_output);
+        ::rename(output.c_str(), _output.c_str());
     }
     return true; 
 }

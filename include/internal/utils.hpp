@@ -4,11 +4,11 @@
 
 namespace utils {
 
-bool is_dir(const std::string& dir);
+bool is_dir(const std::string& path);
 bool exist_test(const std::string& name);
-std::string dirname(std::string str);
-int _mkdir(const char* path);
-bool mkdir_p(const std::string& path);
+std::string dirname(const std::string& path);
 std::string read_file(const std::string& name);
+bool do_mkdir(const std::string& path);
+bool mkpath(const std::string& path);
 
 }

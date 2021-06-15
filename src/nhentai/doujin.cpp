@@ -86,9 +86,11 @@ bool Doujin::download(void) {
         created_cbz = true;
         return false;
     }
-    download_vector(gen::page_urls(data), gen::page_files(data, doujin_dir));
+    utils::mkpath(doujin_dir);
+    exit(0);
     std::ofstream((doujin_dir + "index.json"), std::ios::out) << data.json;
     std::ofstream((doujin_dir + std::to_string(data.id) + ".txt"), std::ios::out) << *this;
+    download_vector(gen::page_urls(data), gen::page_files(data, doujin_dir));
     created_dir = true;
     return true;
 }
@@ -101,10 +103,10 @@ bool Doujin::remove(void) {
         ::remove((doujin_dir + "index.json").c_str());
         ::remove((doujin_dir + std::to_string(data.id) + ".txt").c_str());
         ::remove(doujin_dir.c_str());
-	return true;
+	   return true;
     } else {
         std::cerr << "[Doujin] Cannot delete doujin: doujin not downloaded" << std::endl;
-	return false;
+	   return false;
     }
 }
 
