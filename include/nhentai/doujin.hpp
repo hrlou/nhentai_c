@@ -7,7 +7,7 @@
 #include <fstream>
 
 namespace nhentai {
-    
+
 class Doujin {
 public:
     Doujin(const std::string& _src);

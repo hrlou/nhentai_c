@@ -27,23 +27,33 @@ namespace gen {
 
 }
 
+#include <iostream>
 namespace nhentai {
 
 std::vector<Data> search(const std::string query, const std::string sort) {
-    std::vector<std::string> pages;
-    pages.push_back(curl::download_page(gen::url(query, sort, 0)));
-    std::pair<size_t, size_t> size = parse::search_size(pages.front());
+    std::string p1 = curl::download(gen::url(query, sort, 0));
+    // first = num pages, second = per page
+    auto size = parse::search_size(p1);
     if (size.first == 0) {
-        // std::cerr << "[search] no results for: " << query << std::endl;
         return {};
     }
     
-    pages.reserve(size.first);
+    // asynchronously download the pages
+    std::vector<std::string> urls;
+    urls.reserve(size.first - 1);
     for (size_t i = 2; i <= size.first; i++) {
-        pages.push_back(curl::download_page(gen::url(query, sort, i)));
+        urls.push_back(gen::url(query, sort, i));
     }
+    std::vector<std::string> pages;
+    
+    // setup pages vector
+    pages.push_back(p1);
+    auto a = curl::download(urls);
+    pages.reserve(size.first);
+    pages.insert(pages.end(), a.begin(), a.end());
     std::reverse(pages.begin(), pages.end());
 
+    // parse results
     std::vector<Data> results;
     results.reserve(size.second * size.first);
     for (auto i : pages) {

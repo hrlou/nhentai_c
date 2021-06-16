@@ -27,11 +27,15 @@ std::string Data::format(std::string _fmt, std::string delim) const {
             } else if (!::strncmp(fmt, "media", 5)) {
                 str += media_id;
             } else if (!::strncmp(fmt, "title", 5)) {
-                fmt = 1 + ::strchr(fmt, '.');
-                switch (*fmt) {
-                    case 'p': str += title.pretty; break;
-                    case 'e': str += title.english; break;
-                    case 'j': str += title.japanese; break;
+                fmt += 5;
+                if (*fmt + 1 == '.') {
+                    switch (*fmt) {
+                        case 'p': str += title.pretty; break;
+                        case 'e': str += title.english; break;
+                        case 'j': str += title.japanese; break;
+                    }
+                } else {
+                    str += title.pretty;
                 }
             } else if (!::strncmp(fmt, "pages", 5)) {
                 str += std::to_string(num_pages);

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <future>
 
 #include <getopt.h>
 
@@ -41,8 +42,8 @@ static void handle_nhentai(nhentai::Doujin doujin) {
     }
     if (OPTIONS.download) {
         if (!doujin.download()) {
-	    return;
-	}
+            return;
+        }
     }
     if (OPTIONS.cbz) {
         doujin.create_cbz();
@@ -63,10 +64,10 @@ static void handle_nhentai_array(std::vector<nhentai::Doujin> doujins) {
 static void handle_search(const std::string search_term) {
     auto results = nhentai::search(search_term);
     if (!OPTIONS.duplicates) {
-	const size_t orig = results.size();
+    const size_t orig = results.size();
         std::cerr << "removing duplicates ";
         nhentai::remove_duplicates(results);
-	std::cerr << (orig - results.size()) << std::endl;
+    std::cerr << (orig - results.size()) << std::endl;
         std::cerr << results.size() << " results for \'" << search_term << '\'' << std::endl;
     } else {
         std::cerr << results.size() << " results for \'" << search_term << '\'' << std::endl;
@@ -87,6 +88,8 @@ static void print_banner(std::ostream& out) {
     out << " -N, --nono\tSkip doujin download" << std::endl;
     out << " -C, --cbz\tCreate cbz from doujin" << std::endl;
 }
+
+#include <internal/curl.hpp>
 
 int main(int argc, char *argv[]) {
     if (argc <= 1) {
@@ -153,6 +156,7 @@ int main(int argc, char *argv[]) {
             id_list.erase(0, pos + 1);
         }
     }
+
 
     handle_nhentai_array(arg_doujins);
     return 0;

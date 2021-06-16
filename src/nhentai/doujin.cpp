@@ -13,7 +13,6 @@
 #include <internal/curl.hpp>
 #include <internal/utils.hpp>
 #include <internal/zip.hpp>
-#include <internal/download.hpp>
 
 #include <nhentai/data.hpp>
 #include <nhentai/doujin.hpp>
@@ -50,9 +49,9 @@ static std::vector<std::string> page_files(const nhentai::Data& data, const std:
 
 }
 
-// public
 namespace nhentai {
 
+/* DOUJIN PUBLIC */
 Doujin::Doujin(const std::string& _src) {
     std::string src;
     if (_src.front() == '{' && _src.back() == '}') {
@@ -62,9 +61,9 @@ Doujin::Doujin(const std::string& _src) {
     } else if (_src.substr(_src.length() - 3) == "cbz") {
         src = zip_get_file(_src, "index.json");
     } else if ((_src.front() - '0') <= 9) {
-        src = curl::download_page(gen::url_api(::atoi(_src.c_str())));
+        src = curl::download(gen::url_api(::atoi(_src.c_str())));
     } else if (_src.substr(0, 8) == "https://") {
-        src = parse::parse_page_gallery(curl::download_page(_src));
+        src = parse::parse_page_gallery(curl::download(_src));
     }
 
     if (src.empty()) {
@@ -87,10 +86,9 @@ bool Doujin::download(void) {
         return false;
     }
     utils::mkpath(doujin_dir);
-    exit(0);
     std::ofstream((doujin_dir + "index.json"), std::ios::out) << data.json;
     std::ofstream((doujin_dir + std::to_string(data.id) + ".txt"), std::ios::out) << *this;
-    download_vector(gen::page_urls(data), gen::page_files(data, doujin_dir));
+    curl::download(gen::page_urls(data), gen::page_files(data, doujin_dir));
     created_dir = true;
     return true;
 }
@@ -123,11 +121,7 @@ bool Doujin::create_cbz(void) {
     return true;
 }
 
-}
-
-// private 
-namespace nhentai {
-
+/* DOUJIN PRIVATE */
 void Doujin::setup_files(void) {
     // set defaults
     if (output_dir.empty()) {

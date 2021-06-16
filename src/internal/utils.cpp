@@ -4,21 +4,12 @@
 #include <sys/stat.h>
 #ifdef _WIN32
 #include <direct.h>
+#define MKDIR(PATH) ::_mkdir(PATH)
+#else
+#define MKDIR(PATH) ::mkdir(PATH, 0755)
 #endif
-
-#include <ftw.h>
 
 #include <internal/utils.hpp>
-
-#ifdef _WIN32
-#define MKDIR(PATH) ::_mkdir(PATH);
-#else
-#define MKDIR(PATH) ::mkdir(PATH, 0755);
-#endif
-
-
-#include <iostream>
-#include <cstring>
 
 namespace utils {
 
@@ -44,28 +35,31 @@ std::string read_file(const std::string& name) {
 }
 
 bool do_mkdir(const std::string& path) {
-    std::cout << "mkdir: " << path << std::endl;
-    return MKDIR(path.c_str());
+    struct stat st;
+    if (::stat(path.c_str(), &st) != 0) {
+        // Directory does not exist. EEXIST for race condition 
+        if (MKDIR(path.c_str()) != 0 && errno != EEXIST) {
+            return false;
+        }
+    } else if (!S_ISDIR(st.st_mode)) {
+        errno = ENOTDIR;
+        return false;
+    }
+    return true;
 }
 
-bool mkpath(const std::string& path) {
-    char* copypath = ::strdup(&path[0]);
-    bool status = false;
-    char* pp = copypath;
-    char* sp;
-    while (status == false && (sp = ::strchr(pp, '/')) != 0) {
-        if (sp != pp) {
-            *sp = '\0';
-            status = do_mkdir(copypath);
-            *sp = '/';
-        }
-        pp = sp + 1;
+bool mkpath(std::string path) {
+    std::string build;
+    for (size_t pos = 0; (pos = path.find('/')) != std::string::npos;) {
+        build += path.substr(0, pos + 1);
+        do_mkdir(build);
+        path.erase(0, pos + 1);
     }
-    if (status == true) {
-        status = do_mkdir(path);
+    if (!path.empty()) {
+        build += path;
+        do_mkdir(build);
     }
-    ::free(copypath);
-    return status;
+    return true;
 }
 
 }
