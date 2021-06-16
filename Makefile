@@ -2,7 +2,7 @@ BIN := nhentai
 BUILD_DIR := ./build
 
 CXX := c++
-CXXFLAGS := -std=c++11 -pipe -pedantic -O3 -Wall
+CXXFLAGS := -std=c++11 -g -pipe -pedantic -O3 -Wall
 PREFIX := /usr/local
 INCLUDE := -I. -I./include -I$(BUILD_DIR) -I$(PREFIX)/include
 LDFLAGS := -lpthread -lcurl -lzip

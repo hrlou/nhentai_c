@@ -89,8 +89,6 @@ static void print_banner(std::ostream& out) {
     out << " -C, --cbz\tCreate cbz from doujin" << std::endl;
 }
 
-#include <internal/curl.hpp>
-
 int main(int argc, char *argv[]) {
     if (argc <= 1) {
         print_banner(std::cerr);
@@ -156,8 +154,6 @@ int main(int argc, char *argv[]) {
             id_list.erase(0, pos + 1);
         }
     }
-
-
     handle_nhentai_array(arg_doujins);
     return 0;
 }

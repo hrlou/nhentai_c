@@ -4,7 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+
 #include <cmath>
+#include <cstring>
 
 #include <curl/curl.h>
 
@@ -53,7 +55,8 @@ static int multi_download(std::vector<cFile> cfiles, bool show_progress = false,
             if (msg->msg == CURLMSG_DONE) {
                 CURL* e = msg->easy_handle;
                 char* url;
-                curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &url);
+                // curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &url);
+                curl_easy_getinfo(msg->easy_handle, CURLINFO_EFFECTIVE_URL, &url);
                 if (verbose) {
                     std::cerr << "R: " << msg->data.result << " - " << curl_easy_strerror(msg->data.result) << " <" << url << '>' << std::endl;
                 }
@@ -80,25 +83,25 @@ static int multi_download(std::vector<cFile> cfiles, bool show_progress = false,
     return EXIT_SUCCESS;
 }
 
-static size_t write_callback(char* buf, size_t size, size_t nmemb, std::string* src) {
-    *src += std::string(buf);
-    return size*nmemb;
+static size_t write_memory_callback(void* contents, size_t size, size_t nmemb, void* userp) {
+    static_cast<std::string*>(userp)->append(static_cast<char*>(contents), size * nmemb);
+    return size * nmemb;
 }
 
 namespace file {
 
-cFile init(const std::string& url, const std::string& file) {
+static cFile init(const std::string& url, const std::string& file) {
     CURL* curl = curl_easy_init();
     FILE* fp = ::fopen(file.c_str(), "w");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_PRIVATE, &url);
+    // curl_easy_setopt(curl, CURLOPT_PRIVATE, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
     return {curl, fp};
 }
 
-std::vector<cFile> init_vector(const std::vector<std::string>& urls, const std::vector<std::string>& files) {
+static std::vector<cFile> init_vector(const std::vector<std::string>& urls, const std::vector<std::string>& files) {
     std::vector<cFile> cfiles;
     for (size_t i = 0; i < urls.size(); i++) {
         if (!utils::exist_test(files[i])) {
@@ -112,18 +115,18 @@ std::vector<cFile> init_vector(const std::vector<std::string>& urls, const std::
 
 namespace page {
 
-cFile init(const std::string& url) {
-    std::string* pass = new std::string;
+static cFile init(const std::string& url) {
+    std::string* chunk = new std::string;
     CURL* curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_PRIVATE, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &write_callback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, pass);
+    // curl_easy_setopt(curl, CURLOPT_PRIVATE, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_memory_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(chunk));
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
-    return {curl, pass};
+    return {curl, static_cast<void*>(chunk)};
 }
 
-std::vector<cFile> init_vector(const std::vector<std::string>& urls) {
+static std::vector<cFile> init_vector(const std::vector<std::string>& urls) {
     std::vector<cFile> cfiles;
     for (auto i : urls) {
         cfiles.push_back(init(i));
@@ -145,34 +148,29 @@ void download(const std::vector<std::string>& urls, const std::vector<std::strin
     auto cfiles = file::init_vector(urls, files);
     multi_download(cfiles, true);
     for (auto i : cfiles) {
-        ::fclose((FILE*)i.second);
+        ::fclose(static_cast<FILE*>(i.second));
     }
 }
 
 // download page
 std::string download(const std::string& url) {
-    auto cpage = page::init(url);
-    curl_easy_perform(cpage.first);
-    curl_easy_cleanup(cpage.first);
-    std::string s = *(reinterpret_cast<std::string*>(cpage.second));
-    delete[] cpage.second;
+    auto c = page::init(url);
+    curl_easy_perform(c.first);
+    curl_easy_cleanup(c.first);
+    std::string s = *static_cast<std::string*>(c.second);
+    delete static_cast<std::string*>(c.second);
     return s;
 }
 
 // download pages
 std::vector<std::string> download(const std::vector<std::string>& urls) {
     auto cpages = page::init_vector(urls);
-    for (auto i : urls) {
-        std::cout << i << std::endl;
-    }
-
-    multi_download(cpages, false, true);
+    multi_download(cpages);
     std::vector<std::string> vc;
     vc.reserve(cpages.size());
     for (auto i : cpages) {
-        std::string s = *(reinterpret_cast<std::string*>(i.second));
-        delete[] i.second;
-        vc.push_back(s);
+        vc.push_back(*static_cast<std::string*>(i.second));
+        delete static_cast<std::string*>(i.second);
     }
     return vc;
 }
